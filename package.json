@@ -32,6 +32,7 @@
     "@thefirstspine/messaging-nest": "2.0.6",
     "@thefirstspine/types-game": "^1.0.3",
     "@thefirstspine/types-matches": "^2.4.3",
+    "appoptics-apm": "^10.2.2",
     "axios": "^1.8.2",
     "chalk": "^5.4.1",
     "class-transformer": ">=0.5.1",

@@ -7,9 +7,6 @@ async function bootstrap() {
   // Load dotev config
   require('dotenv').config();
 
-  // Load appoptics config
-  require('appoptics-apm');
-
   // Launch app
   const app = await NestFactory.create(AppModule.register());
   app.enableCors();

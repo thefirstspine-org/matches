@@ -1,0 +1,39 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 */1 * *"
+
+name: Compass metrics daily jobs
+
+concurrency:
+  group: 'compass-metrics-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: "Test command to check the action"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the "test" command
+        uses: thefirstspine-org/github-action-compass-metrics@master
+        with:
+          command: 'test'
+  open-vulnerabilities:
+    name: "Check open vulnerabilities of the service"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'thefirstspine-org/arena'
+          path: 'tmp'
+      - name: Run the "availability" command
+        uses: thefirstspine-org/github-action-compass-metrics@master
+        with:
+          command: 'open-vulnerabilities'
+          atlassianUserApiKey: ${{ secrets.ATLASSIAN_API_KEY }}
+          atlassianUserEmail: 'teddy@thefirstspine.fr'
+          gatewayDomain: 'thefirstspine.atlassian.net'
+          metricSourceId: 'ari:cloud:compass:6ea2c72c-9b15-49d9-bd9d-72a5b6d1b3e1:metric-source/f792fe52-6af8-47ca-9398-ce0c44305c1b/cbbfc1aa-4674-4076-be3c-12af44b2746a'
+          scanNpmVulnerabilities: true
+          scanDockerVulnerabilities: true
+          path: 'tmp'

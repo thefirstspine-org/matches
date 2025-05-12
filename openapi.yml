@@ -1,6 +1,6 @@
 openapi: 3.0.4
 info:
-  title: Arena API - OpenAPI 3.0
+  title: Matches API - OpenAPI 3.0
   version: 1.0.0
 externalDocs:
   description: Find out more about Swagger
@@ -8,733 +8,142 @@ externalDocs:
 servers:
   - url: https://arena.thefirstspine.fr
 tags:
-  - name: player
-  - name: forge
-  - name: deciphering
-  - name: interactions
-  - name: games
+  - name: api
 paths:
-  /get-current-player:
+  /api:
     post:
       tags:
-        - player
-      summary: Get the current player
-      operationId: get-current-player
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    allOf:
-                      - $ref: '#/components/schemas/Player'
-                      - type: object
-                        properties:
-                          power:
-                            type: integer
-  /get-player:
-    post:
-      tags:
-        - player
-      summary: Get a player
-      operationId: get-player
+        - api
+      summary: Main JSON-RPC endpoit
+      operationId: api
       requestBody:
         content:
           application/json:
             schema:
-              properties:
-                userId:
-                  type: integer
+              $ref: '#/components/schemas/JsonRpcRequest'
       responses:
         '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    allOf:
-                      - $ref: '#/components/schemas/Player'
-                      - type: object
-                        properties:
-                          power:
-                            type: integer
-  /create-player:
-    post:
-      tags:
-        - player
-      summary: Create a player
-      operationId: create-player
-      requestBody:
-        content:
-          application/json:
-            schema:
-              required:
-                - type
-              properties:
-                name:
-                  type: string
-                wallet:
-                  type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    allOf:
-                      - $ref: '#/components/schemas/Player'
-                      - type: object
-                        properties:
-                          power:
-                            type: integer
-  /get-current-player-cards:
-    post:
-      tags:
-        - player
-      summary: Get the current player cards
-      operationId: get-current-player-cards
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PaginationRequest'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/GeneratedCard'
-                  pagination:
-                    $ref: '#/components/schemas/PaginationResponse'
-  /get-current-player-decks:
-    post:
-      tags:
-        - player
-      summary: Get the current player decks
-      operationId: get-current-player-decks
-      requestBody:
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/PaginationRequest'
-                - type: object
-                  properties:
-                    withGeneratedCards:
-                      type: boolean
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    items:
-                      oneOf:
-                        - $ref: '#/components/schemas/Deck'
-                        - $ref: '#/components/schemas/DeckWithgeneratedCards'
-                  pagination:
-                    $ref: '#/components/schemas/PaginationResponse'
-  /create-deck-for-current-player:
-    post:
-      tags:
-        - player
-      summary: Create a deck for the current player
-      operationId: create-deck-for-current-player
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-                - generatedCardsIds
-              properties:
-                name:
-                  type: string
-                generatedCardsIds:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/Deck'
-  /delete-deck-for-current-player:
-    post:
-      tags:
-        - player
-      summary: Delete a deck for the current player
-      operationId: delete-deck-for-current-player
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - id
-              properties:
-                id:
-                  type: integer
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-  /update-deck-for-current-player:
-    post:
-      tags:
-        - player
-      summary: Update a deck for the current player
-      operationId: update-deck-for-current-player
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - id
-              properties:
-                id:
-                  type: integer
-                name:
-                  type: string
-                generatedCardsIds:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/Deck'
-  /forge-card:
-    post:
-      tags:
-        - forge
-      summary: Forge a card
-      operationId: forge-card
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - ancientShards
-                - ancientKnowledge
-              properties:
-                ancientShards:
-                  type: integer
-                ancientKnowledge:
-                  type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/GeneratedCard'
-  /deciphering:
-    post:
-      tags:
-        - deciphering
-      summary: Decipher a fated knowledge
-      operationId: deciphering
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - fatedKnowledge
-              properties:
-                fatedKnowledge:
-                  type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/GeneratedCard'
-  /interact-with-scenery:
-    post:
-      tags:
-        - interactions
-      summary: Interact with thescenery
-      operationId: interact-with-scenery
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - interaction
-              properties:
-                interaction:
-                  type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-  /join-location:
-    post:
-      tags:
-        - games
-      summary: Join a location
-      operationId: join-location
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - location
-                - deckId
-              properties:
-                deckId:
-                  type: integer
-                location:
-                  type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-                    properties:
-                      location:
-                        $ref: '#/components/schemas/JoinLocationResult'
-                      queue:
-                        type: object
-  /leave-location:
-    post:
-      tags:
-        - games
-      summary: Leave a location
-      operationId: leave-location
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - location
-              properties:
-                location:
-                  type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-                    properties:
-                      location:
-                        $ref: '#/components/schemas/LeaveLocationResult'
-                      queue:
-                        type: object
-  /refresh-location:
-    post:
-      tags:
-        - games
-      summary: Refresh a location
-      operationId: refresh-location
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - location
-              properties:
-                location:
-                  type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-                    properties:
-                      location:
-                        $ref: '#/components/schemas/LeaveLocationResult'
-                      queue:
-                        type: object
-  /claim-or-get-game-loot:
-    post:
-      tags:
-        - games
-      summary: Claim a get a game loot
-      operationId: claim-or-get-game-loot
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - gameId
-              properties:
-                gameId:
-                  type: integer
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-                    properties:
-                      location:
-                        $ref: '#/components/schemas/PlayerClaim'
-                      claimed:
-                        type: boolean
-  /matches-proxy/api:
-    post:
-      tags:
-        - games
-      summary: Act as a proxy to the matches service. For a complete documentation, see the matches service.
-      operationId: matches-proxy-api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - method
-                - params
-              properties:
-                method:
-                  type: string
-                params:
-                  type: object
-                id:
-                  type: integer
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                properties:
-                  status:
-                    description: The status of the response
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                $ref: '#/components/schemas/JsonRpcResult'
 components:
   schemas:
-    PaginationRequest:
+    JsonRpcRequest:
       type: object
+      required:
+        - jsonrpc
+        - method
       properties:
-        limit:
-          type: integer
-        offset:
-          type: integer
-    PaginationResponse:
-      type: object
-      properties:
-        limit:
-          type: integer
-        offset:
-          type: integer
-        total:
-          type: integer
-    Player:
-      type: object
-      properties:
-        userId:
-          type: integer
-          format: int64
-        version:
-          type: integer
-          format: int64
-        name:
-          type: string
-        metadata:
-          $ref: '#/components/schemas/PlayerMetadata'
-        avatar:
-          $ref: '#/components/schemas/PlayerAvatar'
-        currencies:
-          $ref: '#/components/schemas/PlayerCurrencies'
-        items:
-          $ref: '#/components/schemas/PlayerItems'
-        claims:
-          type: array
-          items:
-            $ref: '#/components/schemas/PlayerClaim'
-        createdAt:
-          type: string
-          format: date
-        savedAt:
-          type: string
-          format: date
-    PlayerMetadata:
-      type: object
-      properties:
-        web3:
-          type: object
-    PlayerAvatar:
-      type: object
-      properties:
-        avatar:
+        jsonrpc:
           type: string
           enum:
-            - applicant
-            - summoner
-            - conjurer
-            - sorcerer
-            - hunter
-        color:
-          type: string
-          enum: 
-            - white
-            - red
-            - green
-            - blue
-            - yellow
-            - orange
-            - pink
-    PlayerCurrencies:
-      type: object
-      properties:
-        destinyMarks:
+            - '2.0'
+        id:
           type: integer
-        ancientShards:
-          type: integer
-        strangeCoins:
-          type: integer
-    PlayerItems:
-      type: object
-      properties:
-        ancientKnowledge:
-          type: array
-          items:
-            type: string
-        fatedKnowledge:
-          type: array
-          items:
-            type: string
-        unique:
-          type: array
-          items:
-            type: string
-    PlayerClaim:
-      type: object
-      properties:
-        source:
+        method:
           type: string
           enum:
-            - code
-            - game
-        sourceId:
-          type: string
-        currencies:
-          $ref: '#/components/schemas/PlayerCurrencies'
-        items:
-          $ref: '#/components/schemas/PlayerItems'
-        blueprints:
-          type: array
-          items:
-            type: string
-        claimedAt:
-          type: string
-          format: date
-    GeneratedCard:
+            - createQueue
+            - getQueue
+            - joinQueue
+            - refreshQueueAsk
+            - quitQueue
+            - getCurrentGame
+            - getGame
+            - getCards
+            - getActions
+            - respondToAction
+            - concede
+        params:
+          oneOf:
+            - $ref: '#/components/schemas/JsonRpcRequestCreateQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestGetQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestJoinQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestRefreshQueueAsk'
+            - $ref: '#/components/schemas/JsonRpcQuitQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestRespondToAction'
+    JsonRpcResult:
       type: object
       properties:
-        card:
-          type: object
-        blueprint:
-          type: object
-        power:
-          type: integer
-        id:
+        jsonrpc:
           type: string
-        userId:
-          type: integer
-        isEtherized:
-          type: boolean
-        metadata:
-          type: object
-    Deck:
-      type: object
-      properties:
+          enum:
+            - '2.0'
         id:
           type: integer
-        name:
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/QueueInstance'
+            - $ref: '#/components/schemas/GetGameResponse'
+            - $ref: '#/components/schemas/RespondToActionResponse'
+            - type: array
+              items:
+                type: object
+                $ref: '#/components/schemas/GameCard'
+            - type: array
+              items:
+                type: object
+                $ref: '#/components/schemas/GameAction'
+
+    JsonRpcRequestCreateQueue:
+      type: object
+      properties:
+        key:
           type: string
-        generatedCardsIds:
-          type: array
-          items:
-            type: string
-        playerUserId:
-          type: integer
-    DeckWithgeneratedCards:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
+        theme:
           type: string
-        generatedCardsIds:
-          type: array
-          items:
-            type: string
-        playerUserId:
-          type: integer
-        generatedCards:
-          type: array
-          items:
-            $ref: '#/components/schemas/GeneratedCard'
-    JoinLocationResult:
-      type: object
-      properties:
-        location:
-          $ref: '#/components/schemas/Location'
-        queue:
-          type: object
-    LeaveLocationResult:
-      type: object
-      properties:
-        location:
-          $ref: '#/components/schemas/Location'
-        queue:
-          type: object
-    Location:
-      type: object
-      properties:
-        id:
-          type: integer
-        loots:
-          $ref: '#/components/schemas/LocationLoots'
-        requiredPlayerPower:
-          type: integer
-        maxDeckPower:
-          type: integer
+          deprecated: true
+        expirationTimeModifier:
+          type: number
+          maximum: 9999
+          minimum: 0.1
         cards:
           type: array
           items:
             type: object
-        playerLife:
-          type: integer
-    LocationLoots:
+    JsonRpcRequestGetQueue:
       type: object
       properties:
-        common:
-          $ref: '#/components/schemas/LocationLoot'
-        victory:
-          $ref: '#/components/schemas/LocationLoot'
-    LocationLoot:
+        key:
+          type: string
+    JsonRpcRequestJoinQueue:
       type: object
       properties:
-        currencies:
-          $ref: '#/components/schemas/PlayerCurrencies'
-        items:
-          $ref: '#/components/schemas/PlayerCurrencies'
-        blueprints:
+        key:
+          type: string
+        cards:
           type: array
           items:
-            type: string
+            type: object
+        score:
+          type: number
+    JsonRpcRequestRefreshQueueAsk:
+      type: object
+      properties:
+        key:
+          type: string
+    JsonRpcQuitQueue:
+      type: object
+      properties:
+        key:
+          type: string
+    JsonRpcRequestRespondToAction:
+      type: object
+      properties:
+        actionType:
+          type: string
+        responses:
+          type: object
+
+    QueueInstance:
+      type: object
+    GetGameResponse:
+      type: object
+    GameCard:
+      type: object
+    GameAction:
+      type: object
+    RespondToActionResponse:
+      type: object

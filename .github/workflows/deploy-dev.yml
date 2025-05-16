@@ -38,16 +38,7 @@ jobs:
           rm -rf volume/keys
           mv tmp/conf volume/conf
           mv tmp/keys volume/keys
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build thefirstspine/ansible image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          tags: thefirstspine/ansible
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Run thefirstspine/ansible image
+      - name: Build and run thefirstspine-org-ansible image
         run: |
-          docker run --rm -v ./volume:/volume -e BRANCH=next thefirstspine/ansible ansible-playbook -i /volume/conf/inventory.yaml /volume/playbooks/deploy-matches.yaml
+          docker build . -t thefirstspine-org-ansible &&
+          docker run --rm -v ./volume:/volume -e BRANCH=next thefirstspine-org-ansible ansible-playbook -i /volume/conf/inventory.yaml /volume/playbooks/deploy-matches.yaml

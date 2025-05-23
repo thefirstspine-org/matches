@@ -61,6 +61,12 @@ export class QueueService {
 
     this.queueInstances.push(instance);
 
+    this.messagingService.sendMessage(
+      '*',
+      'TheFirstSpine:queue:expired',
+      instance,
+    );
+
     return instance;
   }
 
@@ -169,7 +175,7 @@ export class QueueService {
     // Send message
     this.messagingService.sendMessage(
       '*',
-      `TheFirstSpine:queue:${key}:joined`,
+      `TheFirstSpine:queue:${key}:left`,
       queue);
 
     // Remove the user from the queue

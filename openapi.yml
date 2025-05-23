@@ -1,0 +1,149 @@
+openapi: 3.0.4
+info:
+  title: Matches API - OpenAPI 3.0
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+servers:
+  - url: https://arena.thefirstspine.fr
+tags:
+  - name: api
+paths:
+  /api:
+    post:
+      tags:
+        - api
+      summary: Main JSON-RPC endpoit
+      operationId: api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JsonRpcRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonRpcResult'
+components:
+  schemas:
+    JsonRpcRequest:
+      type: object
+      required:
+        - jsonrpc
+        - method
+      properties:
+        jsonrpc:
+          type: string
+          enum:
+            - '2.0'
+        id:
+          type: integer
+        method:
+          type: string
+          enum:
+            - createQueue
+            - getQueue
+            - joinQueue
+            - refreshQueueAsk
+            - quitQueue
+            - getCurrentGame
+            - getGame
+            - getCards
+            - getActions
+            - respondToAction
+            - concede
+        params:
+          oneOf:
+            - $ref: '#/components/schemas/JsonRpcRequestCreateQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestGetQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestJoinQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestRefreshQueueAsk'
+            - $ref: '#/components/schemas/JsonRpcQuitQueue'
+            - $ref: '#/components/schemas/JsonRpcRequestRespondToAction'
+    JsonRpcResult:
+      type: object
+      properties:
+        jsonrpc:
+          type: string
+          enum:
+            - '2.0'
+        id:
+          type: integer
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/QueueInstance'
+            - $ref: '#/components/schemas/GetGameResponse'
+            - $ref: '#/components/schemas/RespondToActionResponse'
+            - type: array
+              items:
+                type: object
+                $ref: '#/components/schemas/GameCard'
+            - type: array
+              items:
+                type: object
+                $ref: '#/components/schemas/GameAction'
+
+    JsonRpcRequestCreateQueue:
+      type: object
+      properties:
+        key:
+          type: string
+        theme:
+          type: string
+          deprecated: true
+        expirationTimeModifier:
+          type: number
+          maximum: 9999
+          minimum: 0.1
+        cards:
+          type: array
+          items:
+            type: object
+    JsonRpcRequestGetQueue:
+      type: object
+      properties:
+        key:
+          type: string
+    JsonRpcRequestJoinQueue:
+      type: object
+      properties:
+        key:
+          type: string
+        cards:
+          type: array
+          items:
+            type: object
+        score:
+          type: number
+    JsonRpcRequestRefreshQueueAsk:
+      type: object
+      properties:
+        key:
+          type: string
+    JsonRpcQuitQueue:
+      type: object
+      properties:
+        key:
+          type: string
+    JsonRpcRequestRespondToAction:
+      type: object
+      properties:
+        actionType:
+          type: string
+        responses:
+          type: object
+
+    QueueInstance:
+      type: object
+    GetGameResponse:
+      type: object
+    GameCard:
+      type: object
+    GameAction:
+      type: object
+    RespondToActionResponse:
+      type: object

@@ -147,7 +147,8 @@ export class GameService {
   isUserPlaying(user: number): boolean {
     return Object.keys(this.gameInstances).filter(
       (g) => {
-        return this.gameInstances[g].status === 'active' &&
+        return this.gameInstances[g].users &&
+          this.gameInstances[g].status === 'active' &&
           this.gameInstances[g].users.filter((u) => u.user === user).length > 0;
       },
     ).length > 0;

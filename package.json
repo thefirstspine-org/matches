@@ -28,7 +28,7 @@
     "@thefirstspine/auth": "^3.2.0",
     "@thefirstspine/auth-nest": "^3.1.1",
     "@thefirstspine/certificate-nest": "1.0.11",
-    "@thefirstspine/logs-nest": "^9.3.1",
+    "@thefirstspine/logs-nest": "^11.1.0",
     "@thefirstspine/messaging-nest": "2.0.9",
     "@thefirstspine/types-game": "^1.0.6",
     "@thefirstspine/types-matches": "^2.4.6",

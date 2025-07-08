@@ -31,7 +31,7 @@ export class CardDestroyedGameHook implements IGameHook {
       const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
       const burdenEarthGameCard: IGameCard = {
         card: burdenEarth,
-        id: `${gameInstance}_${randomId}`,
+        id: `${gameInstance.id}_${randomId}`,
         location: 'board',
         user: params.gameCard.user,
         coords: {
@@ -134,7 +134,7 @@ export class CardDestroyedGameHook implements IGameHook {
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
         const waterGameCard: IGameCard = {
           card: water,
-          id: `${gameInstance}_${randomId}`,
+          id: `${gameInstance.id}_${randomId}`,
           location: 'board',
           user: 0,
           coords: {
@@ -158,7 +158,7 @@ export class CardDestroyedGameHook implements IGameHook {
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
         const ditchGameCard: IGameCard = {
           card: ditch,
-          id: `${gameInstance}_${randomId}`,
+          id: `${gameInstance.id}_${randomId}`,
           location: 'board',
           user: 0,
           coords: {
@@ -212,7 +212,7 @@ export class CardDestroyedGameHook implements IGameHook {
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
         const insanesEchoGameCard: IGameCard = {
           card: ditch,
-          id: `${gameInstance}_${randomId}`,
+          id: `${gameInstance.id}_${randomId}`,
           location: 'board',
           user: 0,
           coords: {

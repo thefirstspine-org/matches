@@ -129,7 +129,7 @@ export class SpellTheVoidGameWorker implements IGameWorker, IHasGameHookService 
       const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
       const ditchGameCard: IGameCard = {
         card: ditch,
-        id: `${gameInstance}_${randomId}`,
+        id: `${gameInstance.id}_${randomId}`,
         location: 'board',
         user: 0,
         coords: {

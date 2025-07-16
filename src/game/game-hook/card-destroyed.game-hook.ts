@@ -31,7 +31,7 @@ export class CardDestroyedGameHook implements IGameHook {
       const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
       const burdenEarthGameCard: IGameCard = {
         card: burdenEarth,
-        id: `${gameInstance}_${randomId}`,
+        id: `${gameInstance.id}_${randomId}`,
         location: 'board',
         user: params.gameCard.user,
         coords: {
@@ -134,7 +134,7 @@ export class CardDestroyedGameHook implements IGameHook {
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
         const waterGameCard: IGameCard = {
           card: water,
-          id: `${gameInstance}_${randomId}`,
+          id: `${gameInstance.id}_${randomId}`,
           location: 'board',
           user: 0,
           coords: {
@@ -158,7 +158,7 @@ export class CardDestroyedGameHook implements IGameHook {
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
         const ditchGameCard: IGameCard = {
           card: ditch,
-          id: `${gameInstance}_${randomId}`,
+          id: `${gameInstance.id}_${randomId}`,
           location: 'board',
           user: 0,
           coords: {
@@ -199,6 +199,29 @@ export class CardDestroyedGameHook implements IGameHook {
         currentStats: JSON.parse(JSON.stringify(iceStatueCard.stats)),
         coords: JSON.parse(JSON.stringify(params.gameCard.coords)),
       });
+    }
+
+    if (params.gameCard?.currentStats?.effects?.includes('spawn-insanes-echo')) {
+      if (!gameInstance.cards.find((c: IGameCard) => {
+        return c.location === 'board' &&
+          c.coords.x === params.gameCard.coords.x &&
+          c.coords.y === params.gameCard.coords.y &&
+          (['creature', 'artifact'].includes(c.card.type) || ['burden-earth', 'ditch'].includes(c.card.id));
+      })) {
+        const ditch: ICard = await this.restService.card('insanes-echo');
+        const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
+        const insanesEchoGameCard: IGameCard = {
+          card: ditch,
+          id: `${gameInstance.id}_${randomId}`,
+          location: 'board',
+          user: 0,
+          coords: {
+            x: params.gameCard.coords.x,
+            y: params.gameCard.coords.y,
+          },
+        };
+        gameInstance.cards.push(insanesEchoGameCard);
+      }
     }
 
     // Discard the card

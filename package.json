@@ -32,7 +32,7 @@
     "@thefirstspine/messaging-nest": "2.0.9",
     "@thefirstspine/types-game": "^1.0.6",
     "@thefirstspine/types-matches": "^2.4.6",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "chalk": "^5.4.1",
     "class-transformer": ">=0.5.1",
     "class-validator": "^0.14.2",

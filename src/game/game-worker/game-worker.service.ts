@@ -37,6 +37,8 @@ import { SpellBloodStrengthGameWorker } from './spell-blood-strength.game-worker
 import { SpellInsaneRuinGameWorker } from './spell-insane-ruin.game-worker';
 import { SpellInsanePutrefactionGameWorker } from './spell-insane-putrefaction.game-worker';
 import { SpellInsaneReconstructGameWorker } from './spell-insane-reconstruct.game-worker';
+import { SpellBreakGameWorker } from './spell-break.game-worker';
+import { SpellWeaknessGameWorker } from './spell-weakness.game-worker';
 
 /**
  * Main service that manages game workers. Each game worker is responsible of a game action type. This service
@@ -104,6 +106,8 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     this.createInjectable(SpellBloodStrengthGameWorker, injectedProps);
     this.createInjectable(SpellInsaneHealGameWorker, injectedProps);
     this.createInjectable(SpellInsaneReconstructGameWorker, injectedProps);
+    this.createInjectable(SpellBreakGameWorker, injectedProps);
+    this.createInjectable(SpellWeaknessGameWorker, injectedProps);
   }
 
   /**

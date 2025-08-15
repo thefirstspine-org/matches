@@ -24,7 +24,6 @@ import { ApiJoinQueueDto } from './api-join-queue.dto';
 import { ApiRefreshQueueAskDto } from './api-refresh-queue-ask.dto';
 import { ApiQuitQueueDto } from './api-quit-queue.dto';
 import { ApiRespondToActionDto } from './api-respond-to-action.dto';
-import { Themes } from '../game/themes';
 
 /**
  * All the methods of the API are mapped here. The controller will call that

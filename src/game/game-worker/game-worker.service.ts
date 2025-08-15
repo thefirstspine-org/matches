@@ -32,12 +32,7 @@ import { SpellPainGameWorker } from './spell-pain.game-worker';
 import { LogsService } from '@thefirstspine/logs-nest';
 import { MessagingService } from '@thefirstspine/messaging-nest';
 import { SpellReinforcementGameWorker } from './spell-reinforcement.game-worker';
-import { SpellTrickOrTreatGameWorker } from './spell-trick-or-treat.game-worker';
 import { SpellBloodStrengthGameWorker } from './spell-blood-strength.game-worker';
-import { SpellMutateFoxGameWorker } from './spell-mutate-fox.game-worker';
-import { SpellMutateBansheeGameWorker } from './spell-mutate-banshee.game-worker';
-import { SpellMutateBarbedWiresGameWorker } from './spell-mutate-barbers.game-worker';
-import { SpellMutateTowerGameWorker } from './spell-mutate-tower.game-worker';
 import { SpellInsaneRuinGameWorker } from './spell-insane-ruin.game-worker';
 import { SpellInsanePutrefactionGameWorker } from './spell-insane-putrefaction.game-worker';
 
@@ -104,12 +99,7 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     this.createInjectable(SpellTheVoidGameWorker, injectedProps);
     this.createInjectable(SpellPainGameWorker, injectedProps);
     this.createInjectable(SpellReinforcementGameWorker, injectedProps);
-    this.createInjectable(SpellTrickOrTreatGameWorker, injectedProps);
     this.createInjectable(SpellBloodStrengthGameWorker, injectedProps);
-    this.createInjectable(SpellMutateFoxGameWorker, injectedProps);
-    this.createInjectable(SpellMutateBansheeGameWorker, injectedProps);
-    this.createInjectable(SpellMutateBarbedWiresGameWorker, injectedProps);
-    this.createInjectable(SpellMutateTowerGameWorker, injectedProps);
   }
 
   /**

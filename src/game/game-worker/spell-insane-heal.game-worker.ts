@@ -1,5 +1,5 @@
 import { IGameWorker } from './game-worker.interface';
-import { IGameInstance, IGameAction, IInteractionPutCardOnBoard, IGameCard } from '@thefirstspine/types-matches';
+import { IGameInstance, IGameAction, IGameCard, IInteractionPutCardOnBoard } from '@thefirstspine/types-matches';
 import { Injectable } from '@nestjs/common';
 import { GameHookService } from '../game-hook/game-hook.service';
 import { IHasGameHookService } from '../injections.interface';
@@ -7,19 +7,19 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "spell-mutate-barbed-wires" spell.
+ * Main worker for "insane-heal" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellMutateBarbedWiresGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellInsaneHealGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
-
-  readonly type: string = 'spell-mutate-barbed-wires';
 
   constructor(
     private readonly logsService: LogsService,
     private readonly arenaRoomsService: ArenaRoomsService,
   ) {}
+
+  readonly type: string = 'spell-insane-heal';
 
   /**
    * @inheritdoc
@@ -29,12 +29,12 @@ export class SpellMutateBarbedWiresGameWorker implements IGameWorker, IHasGameHo
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Mutate BarbedWires`,
-        fr: `Jouer une Mutation de Barbelés`,
+        en: `Play Insane's Heal`,
+        fr: `Jouer un Soin de Démence`,
       },
       description: {
-        en: `Play Mutate BarbedWires on a card`,
-        fr: `Jouer une Mutation sur un Barbelés`,
+        en: `Play Insane's Heal on a creature`,
+        fr: `Jouer un Soin de Démence sur une créature`,
       },
       user: data.user as number,
       priority: 1,
@@ -101,27 +101,28 @@ export class SpellMutateBarbedWiresGameWorker implements IGameWorker, IHasGameHo
     }
     cardUsed.location = 'discard';
 
-    // Add capacity & strength to the card
-    const cardTarget: IGameCard|undefined = gameInstance.cards
+    // Damage the card
+    const cardDamaged: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
-    if (!cardTarget) {
+    if (!cardDamaged) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-
-    cardTarget.currentStats.capacities = cardTarget.currentStats.capacities ?
-      [...cardTarget.currentStats.capacities, 'death'] :
-      ['death'];
+    cardDamaged.currentStats.life += 4;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
+    await this.gameHookService.dispatch(
+      gameInstance,
+      `card:lifeChanged:healed:${cardDamaged.card.id}`,
+      {gameCard: cardDamaged, source: cardUsed, lifeChanged: 4});
 
     // Send message to rooms
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Mutation de Renard`,
-        en: `Played Mutate Barbed Wires`,
+        fr: `A joué un Soin de Démence`,
+        en: `Played Insane's Heal`,
       },
       gameAction.user);
 
@@ -165,7 +166,7 @@ export class SpellMutateBarbedWiresGameWorker implements IGameWorker, IHasGameHo
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'mutate-barbed-wires') {
+      if (card.card.id === 'insane-heal') {
         return index;
       }
       return null;
@@ -179,8 +180,8 @@ export class SpellMutateBarbedWiresGameWorker implements IGameWorker, IHasGameHo
    */
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
-    return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && card.card.id == 'barbers' && card.coords)
+    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'creature' && card.coords)
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
+
 }

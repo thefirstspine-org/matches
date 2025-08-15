@@ -6,6 +6,7 @@ import { ThrowCardsGameWorker } from './throw-cards.game-worker';
 import { MoveCreatureGameWorker } from './move-creature.game-worker';
 import { PlaceCardGameWorker } from './place-card.game-worker';
 import { SpellHealGameWorker } from './spell-heal.game-worker';
+import { SpellInsaneHealGameWorker } from './spell-insane-heal.game-worker';
 import { SpellPutrefactionGameWorker } from './spell-putrefaction.game-worker';
 import { BaseGameService } from '../base.game.service';
 import { ConfrontsGameWorker } from './confronts.game-worker';
@@ -32,14 +33,12 @@ import { SpellPainGameWorker } from './spell-pain.game-worker';
 import { LogsService } from '@thefirstspine/logs-nest';
 import { MessagingService } from '@thefirstspine/messaging-nest';
 import { SpellReinforcementGameWorker } from './spell-reinforcement.game-worker';
-import { SpellTrickOrTreatGameWorker } from './spell-trick-or-treat.game-worker';
 import { SpellBloodStrengthGameWorker } from './spell-blood-strength.game-worker';
-import { SpellMutateFoxGameWorker } from './spell-mutate-fox.game-worker';
-import { SpellMutateBansheeGameWorker } from './spell-mutate-banshee.game-worker';
-import { SpellMutateBarbedWiresGameWorker } from './spell-mutate-barbers.game-worker';
-import { SpellMutateTowerGameWorker } from './spell-mutate-tower.game-worker';
 import { SpellInsaneRuinGameWorker } from './spell-insane-ruin.game-worker';
 import { SpellInsanePutrefactionGameWorker } from './spell-insane-putrefaction.game-worker';
+import { SpellInsaneReconstructGameWorker } from './spell-insane-reconstruct.game-worker';
+import { SpellBreakGameWorker } from './spell-break.game-worker';
+import { SpellWeaknessGameWorker } from './spell-weakness.game-worker';
 
 /**
  * Main service that manages game workers. Each game worker is responsible of a game action type. This service
@@ -104,12 +103,11 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     this.createInjectable(SpellTheVoidGameWorker, injectedProps);
     this.createInjectable(SpellPainGameWorker, injectedProps);
     this.createInjectable(SpellReinforcementGameWorker, injectedProps);
-    this.createInjectable(SpellTrickOrTreatGameWorker, injectedProps);
     this.createInjectable(SpellBloodStrengthGameWorker, injectedProps);
-    this.createInjectable(SpellMutateFoxGameWorker, injectedProps);
-    this.createInjectable(SpellMutateBansheeGameWorker, injectedProps);
-    this.createInjectable(SpellMutateBarbedWiresGameWorker, injectedProps);
-    this.createInjectable(SpellMutateTowerGameWorker, injectedProps);
+    this.createInjectable(SpellInsaneHealGameWorker, injectedProps);
+    this.createInjectable(SpellInsaneReconstructGameWorker, injectedProps);
+    this.createInjectable(SpellBreakGameWorker, injectedProps);
+    this.createInjectable(SpellWeaknessGameWorker, injectedProps);
   }
 
   /**

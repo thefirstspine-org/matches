@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "spell-mutate-fox" spell.
+ * Worker for "weakness" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellMutateFoxGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-mutate-fox';
+  readonly type: string = 'spell-weakness';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellMutateFoxGameWorker implements IGameWorker, IHasGameHookServic
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Mutate Fox`,
-        fr: `Jouer une Mutation de Renard`,
+        en: `Play Weakness`,
+        fr: `Jouer une Faiblesse`,
       },
       description: {
-        en: `Play Mutate Fox on a card`,
-        fr: `Jouer une Mutation sur un Renard`,
+        en: `Play Weakness on a card`,
+        fr: `Jouer une Faiblesse sur une carte`,
       },
       user: data.user as number,
       priority: 1,
@@ -101,18 +101,17 @@ export class SpellMutateFoxGameWorker implements IGameWorker, IHasGameHookServic
     }
     cardUsed.location = 'discard';
 
-    // Add capacity & strength to the card
-    const cardTarget: IGameCard|undefined = gameInstance.cards
+    // Damage the card
+    const cardDamaged: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
-    if (!cardTarget) {
+    if (!cardDamaged) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardTarget.currentStats.capacities = cardTarget.currentStats.capacities ?
-      cardTarget.currentStats.capacities :
-      [];
-    cardTarget.currentStats.capacities = cardTarget.currentStats.capacities.filter(c => c != 'run');
-    cardTarget.currentStats.capacities.push('grow');
+    cardDamaged.currentStats.top.strength >= 2 ? cardDamaged.currentStats.top.strength -= 2 : cardDamaged.currentStats.top.strength = 0;
+    cardDamaged.currentStats.right.strength >= 2 ? cardDamaged.currentStats.right.strength -= 2 : cardDamaged.currentStats.right.strength = 0;
+    cardDamaged.currentStats.bottom.strength >= 2 ? cardDamaged.currentStats.bottom.strength -= 2 : cardDamaged.currentStats.bottom.strength = 0;
+    cardDamaged.currentStats.left.strength >= 2 ? cardDamaged.currentStats.left.strength -= 2 : cardDamaged.currentStats.left.strength = 0;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
@@ -121,8 +120,8 @@ export class SpellMutateFoxGameWorker implements IGameWorker, IHasGameHookServic
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Mutation de Renard`,
-        en: `Played Mutate Fox`,
+        fr: `A joué une Faiblesse`,
+        en: `Play Weakness`,
       },
       gameAction.user);
 
@@ -166,7 +165,7 @@ export class SpellMutateFoxGameWorker implements IGameWorker, IHasGameHookServic
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'mutate-fox') {
+      if (card.card.id === 'weakness') {
         return index;
       }
       return null;
@@ -181,7 +180,7 @@ export class SpellMutateFoxGameWorker implements IGameWorker, IHasGameHookServic
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
     return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && card.card.id == 'the-fox' && card.coords)
+      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords)
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

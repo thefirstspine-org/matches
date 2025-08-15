@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "spell-mutate-tower" spell.
+ * Worker for "break" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellMutateTowerGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellBreakGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-mutate-tower';
+  readonly type: string = 'spell-break';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellMutateTowerGameWorker implements IGameWorker, IHasGameHookServ
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Mutate Tower`,
-        fr: `Jouer une Mutation de Tour`,
+        en: `Play Break`,
+        fr: `Jouer une Cassure`,
       },
       description: {
-        en: `Play Mutate Tower on a card`,
-        fr: `Jouer une Mutation sur une Tour`,
+        en: `Play Break on a card`,
+        fr: `Jouer une Cassure sur une carte`,
       },
       user: data.user as number,
       priority: 1,
@@ -101,18 +101,17 @@ export class SpellMutateTowerGameWorker implements IGameWorker, IHasGameHookServ
     }
     cardUsed.location = 'discard';
 
-    // Add capacity & strength to the card
-    const cardTarget: IGameCard|undefined = gameInstance.cards
+    // Damage the card
+    const cardDamaged: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
-    if (!cardTarget) {
+    if (!cardDamaged) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardTarget.currentStats.top.capacity = null;
-    cardTarget.currentStats.capacities = cardTarget.currentStats.capacities ?
-      [...cardTarget.currentStats.capacities, 'grow'] :
-      ['grow'];
-
+    cardDamaged.currentStats.top.defense >= 2 ? cardDamaged.currentStats.top.defense -= 2 : cardDamaged.currentStats.top.defense = 0;
+    cardDamaged.currentStats.right.defense >= 2 ? cardDamaged.currentStats.right.defense -= 2 : cardDamaged.currentStats.right.defense = 0;
+    cardDamaged.currentStats.bottom.defense >= 2 ? cardDamaged.currentStats.bottom.defense -= 2 : cardDamaged.currentStats.bottom.defense = 0;
+    cardDamaged.currentStats.left.defense >= 2 ? cardDamaged.currentStats.left.defense -= 2 : cardDamaged.currentStats.left.defense = 0;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
@@ -121,8 +120,8 @@ export class SpellMutateTowerGameWorker implements IGameWorker, IHasGameHookServ
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Mutation de Renard`,
-        en: `Played Mutate Tower`,
+        fr: `A joué une Cassure`,
+        en: `Play Break`,
       },
       gameAction.user);
 
@@ -166,7 +165,7 @@ export class SpellMutateTowerGameWorker implements IGameWorker, IHasGameHookServ
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'mutate-tower') {
+      if (card.card.id === 'break') {
         return index;
       }
       return null;
@@ -181,7 +180,7 @@ export class SpellMutateTowerGameWorker implements IGameWorker, IHasGameHookServ
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
     return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && card.card.id == 'the-tower' && card.coords)
+      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords)
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

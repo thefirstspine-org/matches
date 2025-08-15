@@ -214,7 +214,7 @@ export class CardDestroyedGameHook implements IGameHook {
           card: ditch,
           id: `${gameInstance.id}_${randomId}`,
           location: 'board',
-          user: 0,
+          user: params.source.user,
           coords: {
             x: params.gameCard.coords.x,
             y: params.gameCard.coords.y,

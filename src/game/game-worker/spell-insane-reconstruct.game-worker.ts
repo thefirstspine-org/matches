@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "spell-mutate-banshee" spell.
+ * Game worker for "reconstruct" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellMutateBansheeGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellInsaneReconstructGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-mutate-banshee';
+  readonly type: string = 'spell-insane-reconstruct';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellMutateBansheeGameWorker implements IGameWorker, IHasGameHookSe
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Mutate Banshee`,
-        fr: `Jouer une Mutation de Banshee`,
+        en: `Play Insane's Reconstruct`,
+        fr: `Jouer une Reconstruction de Démence`,
       },
       description: {
-        en: `Play Mutate Banshee on a card`,
-        fr: `Jouer une Mutation sur une Banshee`,
+        en: `Play Insane's Reconstruct on an artifact`,
+        fr: `Jouer une Reconstruction de Démence sur un artefact`,
       },
       user: data.user as number,
       priority: 1,
@@ -101,30 +101,28 @@ export class SpellMutateBansheeGameWorker implements IGameWorker, IHasGameHookSe
     }
     cardUsed.location = 'discard';
 
-    // Add capacity & strength to the card
-    const cardTarget: IGameCard|undefined = gameInstance.cards
+    // Damage the card
+    const cardDamaged: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
-    if (!cardTarget) {
+    if (!cardDamaged) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardTarget.currentStats.bottom.strength -= 1;
-    cardTarget.currentStats.top.strength -= 1;
-    cardTarget.currentStats.left.strength -= 1;
-    cardTarget.currentStats.right.strength -= 1;
-    cardTarget.currentStats.capacities = cardTarget.currentStats.capacities ?
-      [...cardTarget.currentStats.capacities, 'grow'] :
-      ['grow'];
+    cardDamaged.currentStats.life += 4;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
+    await this.gameHookService.dispatch(
+      gameInstance,
+      `card:lifeChanged:healed:${cardDamaged.card.id}`,
+      {gameCard: cardDamaged, source: cardUsed, lifeChanged: 4});
 
     // Send message to rooms
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Mutation de Renard`,
-        en: `Played Mutate Banshee`,
+        fr: `A joué une Reconstruction de Démence`,
+        en: `Played Insane's Reconstruct`,
       },
       gameAction.user);
 
@@ -168,7 +166,7 @@ export class SpellMutateBansheeGameWorker implements IGameWorker, IHasGameHookSe
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'mutate-banshee') {
+      if (card.card.id === 'insane-reconstruct') {
         return index;
       }
       return null;
@@ -182,8 +180,7 @@ export class SpellMutateBansheeGameWorker implements IGameWorker, IHasGameHookSe
    */
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
-    return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && card.card.id == 'banshee' && card.coords)
+    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'artifact' && card.coords)
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

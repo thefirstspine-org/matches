@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Game worker for "insane-putrefaction" spell.
+ * Game worker for "ovil-reconstruct" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellOvilReconstructGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-insane-putrefaction';
+  readonly type: string = 'spell-ovil-reconstruct';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Insane Putrefaction`,
-        fr: `Jouer une Putréfaction de Démence`,
+        en: `Play Ovil's Reconstruct`,
+        fr: `Jouer une Reconstruction de Ovil`,
       },
       description: {
-        en: `Play Insane Putrefaction on a creature`,
-        fr: `Jouer une Putréfaction de Démence sur une créature`,
+        en: `Play Ovil's Reconstruct on an artifact`,
+        fr: `Jouer une Reconstruction de Ovil sur un artefact`,
       },
       user: data.user as number,
       priority: 1,
@@ -108,19 +108,21 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.life -= 4;
+    cardDamaged.currentStats.life += 8;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
-    await this.gameHookService
-      .dispatch(gameInstance, `card:lifeChanged:damaged:${cardDamaged.card.type}:${cardDamaged.card.id}`, {gameCard: cardDamaged, source: cardUsed, lifeChanged: -4});
+    await this.gameHookService.dispatch(
+      gameInstance,
+      `card:lifeChanged:healed:${cardDamaged.card.id}`,
+      {gameCard: cardDamaged, source: cardUsed, lifeChanged: 8});
 
     // Send message to rooms
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Putréfaction de Démence`,
-        en: `Played Insane Putrefaction`,
+        fr: `A joué une Reconstruction de Ovil`,
+        en: `Played Ovil's Reconstruct`,
       },
       gameAction.user);
 
@@ -142,7 +144,7 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
    * @param gameAction
    */
   public async delete(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPutCardOnBoard>): Promise<void> {
-    gameInstance.actions.current = gameInstance.actions.current.filter((gameActionRef: IGameAction<IInteractionPutCardOnBoard>) => {
+    gameInstance.actions.current = gameInstance.actions.current.filter((gameActionRef: IGameAction<any>) => {
       if (gameActionRef === gameAction) {
         gameInstance.actions.previous.push({
           ...gameAction,
@@ -164,7 +166,7 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'insane-putrefaction') {
+      if (card.card.id === 'ovil-reconstruct') {
         return index;
       }
       return null;
@@ -178,7 +180,7 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
    */
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
-    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'creature' && card.coords)
+    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'artifact' && card.coords)
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

@@ -1,5 +1,5 @@
 import { IGameWorker } from './game-worker.interface';
-import { IGameInstance, IGameAction, IInteractionPutCardOnBoard, IGameCard } from '@thefirstspine/types-matches';
+import { IGameInstance, IGameAction, IGameCard, IInteractionPutCardOnBoard } from '@thefirstspine/types-matches';
 import { Injectable } from '@nestjs/common';
 import { GameHookService } from '../game-hook/game-hook.service';
 import { IHasGameHookService } from '../injections.interface';
@@ -7,19 +7,19 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Game worker for "insane-putrefaction" spell.
+ * Main worker for "ovil-heal" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellOvilHealGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
-
-  readonly type: string = 'spell-insane-putrefaction';
 
   constructor(
     private readonly logsService: LogsService,
     private readonly arenaRoomsService: ArenaRoomsService,
   ) {}
+
+  readonly type: string = 'spell-ovil-heal';
 
   /**
    * @inheritdoc
@@ -29,12 +29,12 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Insane Putrefaction`,
-        fr: `Jouer une Putréfaction de Démence`,
+        en: `Play Ovil's Heal`,
+        fr: `Jouer un Soin de Ovil`,
       },
       description: {
-        en: `Play Insane Putrefaction on a creature`,
-        fr: `Jouer une Putréfaction de Démence sur une créature`,
+        en: `Play Ovil's Heal on a creature`,
+        fr: `Jouer un Soin de Ovil sur une créature`,
       },
       user: data.user as number,
       priority: 1,
@@ -108,19 +108,21 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.life -= 4;
+    cardDamaged.currentStats.life += 8;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
-    await this.gameHookService
-      .dispatch(gameInstance, `card:lifeChanged:damaged:${cardDamaged.card.type}:${cardDamaged.card.id}`, {gameCard: cardDamaged, source: cardUsed, lifeChanged: -4});
+    await this.gameHookService.dispatch(
+      gameInstance,
+      `card:lifeChanged:healed:${cardDamaged.card.id}`,
+      {gameCard: cardDamaged, source: cardUsed, lifeChanged: 8});
 
     // Send message to rooms
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Putréfaction de Démence`,
-        en: `Played Insane Putrefaction`,
+        fr: `A joué un Soin de Ovil`,
+        en: `Played Ovil's Heal`,
       },
       gameAction.user);
 
@@ -142,7 +144,7 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
    * @param gameAction
    */
   public async delete(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPutCardOnBoard>): Promise<void> {
-    gameInstance.actions.current = gameInstance.actions.current.filter((gameActionRef: IGameAction<IInteractionPutCardOnBoard>) => {
+    gameInstance.actions.current = gameInstance.actions.current.filter((gameActionRef: IGameAction<any>) => {
       if (gameActionRef === gameAction) {
         gameInstance.actions.previous.push({
           ...gameAction,
@@ -164,7 +166,7 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'insane-putrefaction') {
+      if (card.card.id === 'ovil-heal') {
         return index;
       }
       return null;
@@ -181,4 +183,5 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
     return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'creature' && card.coords)
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
+
 }

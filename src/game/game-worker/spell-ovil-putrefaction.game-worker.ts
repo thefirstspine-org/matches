@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Game worker for "insane-putrefaction" spell.
+ * Game worker for "ovil-putrefaction" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellOvilPutrefactionGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-insane-putrefaction';
+  readonly type: string = 'spell-ovil-putrefaction';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Insane Putrefaction`,
-        fr: `Jouer une Putréfaction de Démence`,
+        en: `Play Ovil Putrefaction`,
+        fr: `Jouer une Putréfaction de Ovil`,
       },
       description: {
-        en: `Play Insane Putrefaction on a creature`,
-        fr: `Jouer une Putréfaction de Démence sur une créature`,
+        en: `Play Ovil Putrefaction on a creature`,
+        fr: `Jouer une Putréfaction de Ovil sur une créature`,
       },
       user: data.user as number,
       priority: 1,
@@ -108,19 +108,19 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.life -= 4;
+    cardDamaged.currentStats.life -= 8;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
     await this.gameHookService
-      .dispatch(gameInstance, `card:lifeChanged:damaged:${cardDamaged.card.type}:${cardDamaged.card.id}`, {gameCard: cardDamaged, source: cardUsed, lifeChanged: -4});
+      .dispatch(gameInstance, `card:lifeChanged:damaged:${cardDamaged.card.type}:${cardDamaged.card.id}`, {gameCard: cardDamaged, source: cardUsed, lifeChanged: -8});
 
     // Send message to rooms
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Putréfaction de Démence`,
-        en: `Played Insane Putrefaction`,
+        fr: `A joué une Putréfaction de Ovil`,
+        en: `Played Ovil Putrefaction`,
       },
       gameAction.user);
 
@@ -164,7 +164,7 @@ export class SpellInsanePutrefactionGameWorker implements IGameWorker, IHasGameH
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'insane-putrefaction') {
+      if (card.card.id === 'ovil-putrefaction') {
         return index;
       }
       return null;

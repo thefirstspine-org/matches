@@ -23,6 +23,13 @@ export class ActionExecutedGameHook implements IGameHook {
         c.currentStats.top.strength -= c.metadata.aurastrength;
         c.metadata.aurastrength = 0;
       }
+      if (c.metadata?.guardDefense) {
+        c.currentStats.bottom.defense -= c.metadata.guardDefense;
+        c.currentStats.left.defense -= c.metadata.guardDefense;
+        c.currentStats.right.defense -= c.metadata.guardDefense;
+        c.currentStats.top.defense -= c.metadata.guardDefense;
+        c.metadata.guardDefense = 0;
+      }
       if (c.metadata?.jesterstrength) {
         c.currentStats.bottom.strength -= c.metadata.jesterstrength;
         c.currentStats.left.strength -= c.metadata.jesterstrength;
@@ -82,14 +89,16 @@ export class ActionExecutedGameHook implements IGameHook {
 
       // From now, we need rotated card
       const rotatedCard: IGameCard = rotateCard(gameCard, gameInstance);
-
-      // Increase aura
+      
+      // Sides of the card
       const sides = [
         {x: rotatedCard.coords.x + 1, y: rotatedCard.coords.y},
         {x: rotatedCard.coords.x - 1, y: rotatedCard.coords.y},
         {x: rotatedCard.coords.x, y: rotatedCard.coords.y + 1},
         {x: rotatedCard.coords.x, y: rotatedCard.coords.y - 1},
       ];
+
+      // Increase aura
       ['right', 'left', 'bottom', 'top'].forEach((side: string, sideIndex: number) => {
         if (rotatedCard?.currentStats?.[side]?.capacity === 'aura') {
           // Find a card on the board, with the same user to the position
@@ -107,6 +116,29 @@ export class ActionExecutedGameHook implements IGameHook {
             cardTarget.currentStats.left.strength += 2;
             cardTarget.metadata.aurastrength = cardTarget.metadata.aurastrength ?
               cardTarget.metadata.aurastrength + 2 :
+              2;
+          }
+          }
+      });
+
+      // Increase defense
+      ['right', 'left', 'bottom', 'top'].forEach((side: string, sideIndex: number) => {
+        if (rotatedCard?.currentStats?.[side]?.capacity === 'guard') {
+          // Find a card on the board, with the same user to the position
+          const position: ICardCoords = sides[sideIndex];
+          const cardTarget: IGameCard|undefined = cardsOnBoard.find((cardTargetPotential: IGameCard) => {
+            return ['artifact', 'creature', 'player'].includes(cardTargetPotential.card.type) &&
+              rotatedCard.user === cardTargetPotential.user &&
+              position.x === cardTargetPotential.coords.x &&
+              position.y === cardTargetPotential.coords.y;
+          });
+          if (cardTarget !== undefined) {
+            cardTarget.currentStats.bottom.defense += 2;
+            cardTarget.currentStats.top.defense += 2;
+            cardTarget.currentStats.right.defense += 2;
+            cardTarget.currentStats.left.defense += 2;
+            cardTarget.metadata.guardDefense = cardTarget.metadata.guardDefense ?
+              cardTarget.metadata.guardDefense + 2 :
               2;
           }
           }

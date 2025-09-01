@@ -23,6 +23,22 @@ export class ActionExecutedGameHook implements IGameHook {
         c.currentStats.top.strength -= c.metadata.aurastrength;
         c.metadata.aurastrength = 0;
       }
+      if (c.metadata?.weaknesStrengthTop) {
+        c.currentStats.top.strength += c.metadata.weaknesStrengthTop;
+        c.metadata.weaknesStrengthTop = 0;
+      }
+      if (c.metadata?.weaknesStrengthRight) {
+        c.currentStats.right.strength += c.metadata.weaknesStrengthRight;
+        c.metadata.weaknesStrengthRight = 0;
+      }
+      if (c.metadata?.weaknesStrengthBottom) {
+        c.currentStats.bottom.strength += c.metadata.weaknesStrengthBottom;
+        c.metadata.weaknesStrengthBottom = 0;
+      }
+      if (c.metadata?.weaknesStrengthLeft) {
+        c.currentStats.left.strength += c.metadata.weaknesStrengthLeft;
+        c.metadata.weaknesStrengthLeft = 0;
+      }
       if (c.metadata?.guardDefense) {
         c.currentStats.bottom.defense -= c.metadata.guardDefense;
         c.currentStats.left.defense -= c.metadata.guardDefense;
@@ -118,10 +134,10 @@ export class ActionExecutedGameHook implements IGameHook {
               cardTarget.metadata.aurastrength + 2 :
               2;
           }
-          }
+        }
       });
 
-      // Increase defense
+      // Increase guard
       ['right', 'left', 'bottom', 'top'].forEach((side: string, sideIndex: number) => {
         if (rotatedCard?.currentStats?.[side]?.capacity === 'guard') {
           // Find a card on the board, with the same user to the position
@@ -141,7 +157,59 @@ export class ActionExecutedGameHook implements IGameHook {
               cardTarget.metadata.guardDefense + 2 :
               2;
           }
+        }
+      });
+
+      // Decrease weakness
+      ['right', 'left', 'bottom', 'top'].forEach((side: string, sideIndex: number) => {
+        if (rotatedCard?.currentStats?.[side]?.capacity === 'weakness') {
+          // Find a card on the board, with the same user to the position
+          const position: ICardCoords = sides[sideIndex];
+          const cardTarget: IGameCard|undefined = cardsOnBoard.find((cardTargetPotential: IGameCard) => {
+            return ['artifact', 'creature', 'player'].includes(cardTargetPotential.card.type) &&
+              rotatedCard.user === cardTargetPotential.user &&
+              position.x === cardTargetPotential.coords.x &&
+              position.y === cardTargetPotential.coords.y;
+          });
+          if (cardTarget !== undefined) {
+            if (cardTarget.currentStats.top.strength >= 2) {
+              cardTarget.metadata.weaknesStrengthTop = cardTarget.metadata.weaknesStrengthTop ?
+                cardTarget.metadata.weaknesStrengthTop - 2 :
+                -2;
+            } else {
+              cardTarget.metadata.weaknesStrengthTop = cardTarget.metadata.weaknesStrengthTop ?
+                cardTarget.metadata.weaknesStrengthTop - cardTarget.currentStats.top.strength :
+                -cardTarget.currentStats.top.strength;
+            }
+            if (cardTarget.currentStats.right.strength >= 2) {
+              cardTarget.metadata.weaknesStrengthRight = cardTarget.metadata.weaknesStrengthRight ?
+                cardTarget.metadata.weaknesStrengthRight - 2 :
+                -2;
+            } else {
+              cardTarget.metadata.weaknesStrengthRight = cardTarget.metadata.weaknesStrengthRight ?
+                cardTarget.metadata.weaknesStrengthRight - cardTarget.currentStats.right.strength :
+                -cardTarget.currentStats.right.strength;
+            }
+            if (cardTarget.currentStats.bottom.strength >= 2) {
+              cardTarget.metadata.weaknesStrengthBottom = cardTarget.metadata.weaknesStrengthBottom ?
+                cardTarget.metadata.weaknesStrengthBottom - 2 :
+                -2;
+            } else {
+              cardTarget.metadata.weaknesStrengthBottom = cardTarget.metadata.weaknesStrengthBottom ?
+                cardTarget.metadata.weaknesStrengthBottom - cardTarget.currentStats.bottom.strength :
+                -cardTarget.currentStats.bottom.strength;
+            }
+            if (cardTarget.currentStats.left.strength >= 2) {
+              cardTarget.metadata.weaknesStrengthLeft = cardTarget.metadata.weaknesStrengthLeft ?
+                cardTarget.metadata.weaknesStrengthLeft - 2 :
+                -2;
+            } else {
+              cardTarget.metadata.weaknesStrengthLeft = cardTarget.metadata.weaknesStrengthLeft ?
+                cardTarget.metadata.weaknesStrengthLeft - cardTarget.currentStats.left.strength :
+                -cardTarget.currentStats.left.strength;
+            }
           }
+        }
       });
 
       // Increase strength with the hammers

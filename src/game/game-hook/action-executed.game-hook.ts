@@ -183,7 +183,7 @@ export class ActionExecutedGameHook implements IGameHook {
           const position: ICardCoords = sides[sideIndex];
           const cardTarget: IGameCard|undefined = cardsOnBoard.find((cardTargetPotential: IGameCard) => {
             return ['artifact', 'creature', 'player'].includes(cardTargetPotential.card.type) &&
-              rotatedCard.user === cardTargetPotential.user &&
+              rotatedCard.user != cardTargetPotential.user &&
               position.x === cardTargetPotential.coords.x &&
               position.y === cardTargetPotential.coords.y;
           });
@@ -243,7 +243,7 @@ export class ActionExecutedGameHook implements IGameHook {
           const position: ICardCoords = sides[sideIndex];
           const cardTarget: IGameCard|undefined = cardsOnBoard.find((cardTargetPotential: IGameCard) => {
             return ['artifact', 'creature', 'player'].includes(cardTargetPotential.card.type) &&
-              rotatedCard.user === cardTargetPotential.user &&
+              rotatedCard.user != cardTargetPotential.user &&
               position.x === cardTargetPotential.coords.x &&
               position.y === cardTargetPotential.coords.y;
           });

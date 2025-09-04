@@ -92,9 +92,6 @@ export class GameService {
       });
     }));
 
-    // Get the first user
-    const firstUserToPlay = randBetween(0, gameUsers.length);
-
     // Create the instance
     const gameInstance: IGameInstance = {
       queueKey,
@@ -113,7 +110,7 @@ export class GameService {
 
     // Create the first action
     const action: IGameAction<IGameInteraction> = await this.gameWorkerService.getWorker('throw-cards')
-      .create(gameInstance, {user: gameUsers[firstUserToPlay].user});
+      .create(gameInstance, {user: gameUsers[0].user});
     gameInstance.actions.current.push(action);
 
     // Save it

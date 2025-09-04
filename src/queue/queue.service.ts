@@ -218,7 +218,7 @@ export class QueueService {
       // Create a game
       const game: IGameInstance = await this.gameService.createGameInstance(
         queueInstance.key,
-        queueUsersNeeded,
+        queueUsersNeeded.sort((a, b) => a.score - b.score),
         queueInstance.expirationTimeModifier ? queueInstance.expirationTimeModifier : 1,
         queueInstance.cards,
         queueInstance.coords,

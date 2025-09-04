@@ -53,6 +53,7 @@ export class ApiService {
       key,
       request.params.expirationTimeModifier ? request.params.expirationTimeModifier : 1,
       request.params.cards ? request.params.cards : [],
+      request.params.coords ? request.params.coords : [{x: 3, y: 0}, {x: 3, y: 6}],
     );
 
     // Return response

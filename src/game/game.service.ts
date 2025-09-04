@@ -50,6 +50,7 @@ export class GameService {
     gameUsers: IGameUser[],
     expirationTimeModifier: number,
     startingCards: IGameCard[],
+    coords: {x: number, y: number}[],
   ): Promise<IGameInstance> {
     // Generate a numeric ID to ensure retrocompatibility
     const gameInstanceId = Date.now();
@@ -60,14 +61,6 @@ export class GameService {
     }
 
     // Create the decks
-    const coords = [{
-        x: 3,
-        y: 0
-    },
-    {
-        x: 3,
-        y: 6
-    }];
     const cards: IGameCard[] = [];
     cards.push(...startingCards);
     gameUsers.forEach((gameUser: IGameUser, index: number) => {

@@ -15,4 +15,8 @@ export class ApiCreateQueueDto {
   @IsArray()
   @IsOptional()
   cards?: IGameCard[];
+
+  @IsArray()
+  @IsOptional()
+  coords?: {x: number, y: number}[];
 }

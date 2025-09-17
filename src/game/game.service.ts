@@ -50,6 +50,7 @@ export class GameService {
     gameUsers: IGameUser[],
     expirationTimeModifier: number,
     startingCards: IGameCard[],
+    coords: {x: number, y: number}[],
   ): Promise<IGameInstance> {
     // Generate a numeric ID to ensure retrocompatibility
     const gameInstanceId = Date.now();
@@ -60,14 +61,6 @@ export class GameService {
     }
 
     // Create the decks
-    const coords = [{
-        x: 3,
-        y: 0
-    },
-    {
-        x: 3,
-        y: 6
-    }];
     const cards: IGameCard[] = [];
     cards.push(...startingCards);
     gameUsers.forEach((gameUser: IGameUser, index: number) => {
@@ -99,9 +92,6 @@ export class GameService {
       });
     }));
 
-    // Get the first user
-    const firstUserToPlay = randBetween(0, gameUsers.length);
-
     // Create the instance
     const gameInstance: IGameInstance = {
       queueKey,
@@ -120,7 +110,7 @@ export class GameService {
 
     // Create the first action
     const action: IGameAction<IGameInteraction> = await this.gameWorkerService.getWorker('throw-cards')
-      .create(gameInstance, {user: gameUsers[firstUserToPlay].user});
+      .create(gameInstance, {user: gameUsers[0].user});
     gameInstance.actions.current.push(action);
 
     // Save it

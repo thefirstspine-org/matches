@@ -118,6 +118,23 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
           c.currentStats.top.strength += 2;
         }
       }
+
+      // Remove 1 turn for requiem
+      if (c.user === nextUser && c.currentStats?.capacities?.includes('requiem') && c.location === 'board') {
+        c.metadata = c.metadata ? c.metadata : {};
+        c.metadata.requiemTurns = c.metadata.requiemTurns ? c.metadata.requiemTurns : 5;
+        c.metadata.requiemTurns--;
+        if (c.metadata.requiemTurns <= 0) {
+          const lifeRequiemLost = c.currentStats.life;
+          c.currentStats.life = 0;
+          promisesCapacities.push(
+            this.gameHookService.dispatch(
+              gameInstance,
+              `card:lifeChanged:damaged:${c.card.type}:${c.card.id}`, {gameCard: c, source: null, lifeChanged: -lifeRequiemLost}
+            )
+          );
+        }
+      }
     });
 
     await Promise.all(promisesCapacities);

@@ -5,6 +5,7 @@ import { ICard, IGameType } from '@thefirstspine/types-game';
 import { GameAssetsService } from '../game-assets/game-assets.service';
 import { MessagingService } from '@thefirstspine/messaging-nest';
 import { IQueueUser } from '@thefirstspine/types-matches/lib/queue-user.interface';
+import { queue } from 'rxjs';
 
 /**
  * Service to manage the game queue
@@ -36,6 +37,7 @@ export class QueueService {
         queueUsers: [],
         createdAt: Date.now(),
         cards: [],
+        coords: [{x: 3, y: 0}, {x: 3, y: 6}],
       },
     );
   }
@@ -49,6 +51,7 @@ export class QueueService {
     key: string,
     expirationTimeModifier: number,
     cards: IGameCard[],
+    coords: {x: number, y: number}[],
   ): Promise<IQueueInstance> {
     const instance: IQueueInstance = {
       key,
@@ -57,6 +60,7 @@ export class QueueService {
       createdAt: Date.now(),
       expiresAt: Date.now() + (60 * 30 * 1000),
       cards,
+      coords,
     };
 
     this.queueInstances.push(instance);
@@ -214,9 +218,10 @@ export class QueueService {
       // Create a game
       const game: IGameInstance = await this.gameService.createGameInstance(
         queueInstance.key,
-        queueUsersNeeded,
+        queueUsersNeeded.sort((a, b) => a.score - b.score),
         queueInstance.expirationTimeModifier ? queueInstance.expirationTimeModifier : 1,
         queueInstance.cards,
+        queueInstance.coords,
       );
 
       // Make them quit from the queue

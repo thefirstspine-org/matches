@@ -6,7 +6,7 @@ import { IGameInstance,
   IGameCard } from '@thefirstspine/types-matches';
 import { Injectable } from '@nestjs/common';
 import { GameWorkerService } from './game-worker.service';
-import { cardSide, ICardCoords } from '@thefirstspine/types-game';
+import { cardCapacity, cardSide, ICardCoords } from '@thefirstspine/types-game';
 import { GameHookService } from '../game-hook/game-hook.service';
 import { IHasGameHookService, IHasGameWorkerService } from '../injections.interface';
 import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
@@ -120,21 +120,34 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
     // Damages calculation
     let lifeLostTo = 0;
     let lifeLostFrom = 0;
+    const capacitiesToAddToTarget: cardCapacity[] = [];
     if (direction === 'bottom') {
       lifeLostTo = cardFromRotated.currentStats.bottom.strength - cardToRotated.currentStats.top.defense;
       lifeLostFrom = cardToRotated.currentStats.top.strength - cardFromRotated.currentStats.bottom.defense;
+      if (cardFromRotated.currentStats.bottom?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
+        capacitiesToAddToTarget.push('requiem');
+      }
     }
     if (direction === 'top') {
       lifeLostTo = cardFromRotated.currentStats.top.strength - cardToRotated.currentStats.bottom.defense;
       lifeLostFrom = cardToRotated.currentStats.bottom.strength - cardFromRotated.currentStats.top.defense;
+      if (cardFromRotated.currentStats.top?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
+        capacitiesToAddToTarget.push('requiem');
+      }
     }
     if (direction === 'left') {
       lifeLostTo = cardFromRotated.currentStats.left.strength - cardToRotated.currentStats.right.defense;
       lifeLostFrom = cardToRotated.currentStats.right.strength - cardFromRotated.currentStats.left.defense;
+      if (cardFromRotated.currentStats.left?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
+        capacitiesToAddToTarget.push('requiem');
+      }
     }
     if (direction === 'right') {
       lifeLostTo = cardFromRotated.currentStats.right.strength - cardToRotated.currentStats.left.defense;
       lifeLostFrom = cardToRotated.currentStats.left.strength - cardFromRotated.currentStats.right.defense;
+      if (cardFromRotated.currentStats.right?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
+        capacitiesToAddToTarget.push('requiem');
+      }
     }
 
     // Apply damages

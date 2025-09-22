@@ -62,7 +62,7 @@ export class GameService {
 
     // Create the decks
     const cards: IGameCard[] = [];
-    cards.push(...startingCards);
+    cards.push(...JSON.parse(JSON.stringify(startingCards)));
     gameUsers.forEach((gameUser: IGameUser, index: number) => {
       gameUser.cards.forEach((card: ICard) => {
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);

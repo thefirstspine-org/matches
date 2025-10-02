@@ -17,9 +17,16 @@ import { MessagingService } from '@thefirstspine/messaging-nest';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GameInstance, GameInstanceSchema } from './game/game-instance.schema';
 import { NetworkRoomsDriver } from './rooms/drivers/network.rooms.driver';
+import { Wizard, WizardSchema } from './legacy/wizard.schema';
+import { LegacyController } from './legacy/legacy.controller';
 
 @Module({
-  controllers: [ApiController, TickerController, IndexController],
+  controllers: [
+    ApiController,
+    TickerController,
+    IndexController,
+    LegacyController, // @deprecated
+],
   providers: [
     ApiService,
     GameService,
@@ -49,6 +56,7 @@ export class AppModule {
         MongooseModule.forRoot(`mongodb://${process.env.MONGO_HOST}/${process.env.MONGO_DB}`),
         MongooseModule.forFeature([
           { name: GameInstance.name, schema: GameInstanceSchema },
+          { name: Wizard.name, schema: WizardSchema }, // @deprecated
         ]),
       ],
     };

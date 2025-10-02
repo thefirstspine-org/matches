@@ -204,17 +204,19 @@ export class CardDestroyedGameHook implements IGameHook {
     if (params.gameCard?.currentStats?.effects?.includes('spawn-insanes-echo')) {
       if (!gameInstance.cards.find((c: IGameCard) => {
         return c.location === 'board' &&
+          c.id != params.gameCard.id &&
           c.coords.x === params.gameCard.coords.x &&
           c.coords.y === params.gameCard.coords.y &&
           (['creature', 'artifact'].includes(c.card.type) || ['burden-earth', 'ditch'].includes(c.card.id));
       })) {
-        const ditch: ICard = await this.restService.card('insanes-echo');
+        const insaneEcho: ICard = await this.restService.card('insanes-echo');
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
         const insanesEchoGameCard: IGameCard = {
-          card: ditch,
+          card: insaneEcho,
           id: `${gameInstance.id}_${randomId}`,
           location: 'board',
           user: params.source.user,
+          currentStats: insaneEcho.stats,
           coords: {
             x: params.gameCard.coords.x,
             y: params.gameCard.coords.y,

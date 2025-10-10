@@ -14,12 +14,9 @@ export class LegacyController {
     return this.wizardModel.findOne({ id: wizardId }).exec();
   }
 
-  @Get('wizards/:id')
-  async single(@Param('id') id: number): Promise<IWizard> {
-    const wizard: IWizard|null = await this.wizardModel.findOne({id}).exec();
-    if (!wizard) {
-      throw new NotFoundException();
-    }
+  @Get('wizards')
+  async single(): Promise<any> {
+    const wizard = await this.wizardModel.find();
     return wizard;
   }
 

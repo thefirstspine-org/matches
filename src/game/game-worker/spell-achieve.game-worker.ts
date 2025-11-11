@@ -183,7 +183,8 @@ export class SpellAchieveGameWorker implements IGameWorker, IHasGameHookService 
         return card.location === 'board' &&
           ['creature', 'artifact'].includes(card.card.type) &&
           card.coords &&
-          card.currentStats.life < card.card.stats.life;
+          card.currentStats.life < card.card.stats.life &&
+          !card.currentStats.effects?.includes('shadow');
       })
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }

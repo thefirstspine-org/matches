@@ -180,7 +180,7 @@ export class SpellReinforcementGameWorker implements IGameWorker, IHasGameHookSe
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
     return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords)
+      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords && !card.currentStats.effects?.includes('shadow'))
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 

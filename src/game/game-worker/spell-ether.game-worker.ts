@@ -162,7 +162,7 @@ export class SpellEtherGameWorker implements IGameWorker, IHasGameHookService {
    */
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
-    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'player' && card.user === user)
+    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'player' && card.user === user && !card.currentStats.effects?.includes('shadow'))
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 

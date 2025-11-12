@@ -180,7 +180,7 @@ export class SpellOvilHealGameWorker implements IGameWorker, IHasGameHookService
    */
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
-    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'creature' && card.coords)
+    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'creature' && card.coords && !card.currentStats.effects?.includes('shadow'))
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 

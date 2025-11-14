@@ -17,7 +17,8 @@ import { ApiJoinQueueDto } from './api-join-queue.dto';
 import { ApiRefreshQueueAskDto } from './api-refresh-queue-ask.dto';
 import { ApiQuitQueueDto } from './api-quit-queue.dto';
 import { ApiRespondToActionDto } from './api-respond-to-action.dto';
-import { ICard } from '@thefirstspine/types-game';
+import { cardLocation, ICard } from '@thefirstspine/types-game';
+import { ApiAddCardDto } from './api-add-card.dto';
 
 /**
  * All the methods of the API are mapped here. The controller will call that
@@ -297,9 +298,9 @@ export class ApiService {
     };
   }
 
-  async addCard(request: IApiRequest<IApiRespondToActionParams>): Promise<IApiRespondToActionResponse> {
+  async addCard(request: IApiRequest<IApiAddCardParams>): Promise<IApiAddCardResponse> {
     // Validate input
-    await this.validateAgainst(request.params, ApiRespondToActionDto);
+    await this.validateAgainst(request.params, ApiAddCardDto);
 
     // Get the ID of the game
     const id: number|undefined = request.id;
@@ -313,21 +314,25 @@ export class ApiService {
       throw new ApiError('Unknown game instance.', ApiError.CODE_METHOD_NOT_FOUND);
     }
 
-    // Cannot respond to a non-opened game instance
+    // Cannot add a card to a non-opened game instance
     if (gameInstance.status !== 'active') {
       throw new ApiError('Non active game instance.', ApiError.CODE_INVALID_REQUEST);
     }
 
-    // Store the response in the instance
-    const sent: boolean = await this.gameService.respondToAction(
-      gameInstance.id,
-      request.params.actionType,
-      request.user,
-      request.params.response);
+    console.log({request});
+    console.log(request.params.user);
+    console.log(request.user);
+    const added = await this.gameService.addCard(
+      id,
+      request.params.user ? request.params.user : request.user,
+      request.params.card,
+      request.params.location,
+      request.params.coords,
+    );
 
     // Response not sent
     return {
-      sent,
+      added,
     };
   }
 
@@ -434,4 +439,15 @@ export interface IApiRespondToActionParams {
 
 export interface IApiRespondToActionResponse {
   sent: boolean;
+}
+
+export interface IApiAddCardParams {
+  user?: number;
+  location?: cardLocation;
+  coords?: {x: number, y: number};
+  card: ICard;
+}
+
+export interface IApiAddCardResponse {
+  added: boolean;
 }

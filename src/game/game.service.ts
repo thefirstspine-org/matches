@@ -207,14 +207,6 @@ export class GameService {
   }
 
   /**
-   * Loads an instance in the hot memory
-   * @param instance
-   */
-  loadInMemory(instance: IGameInstance) {
-    this.gameInstances[instance.id] = instance;
-  }
-
-  /**
    * Respond to an action. This response is scopped by game instance, type & user.
    * @param gameInstanceId
    * @param actionType
@@ -360,16 +352,6 @@ export class GameService {
   async lookForPendingActions() {
     // Main loop on the games instances
     return Promise.all(this.getGameInstances().map(this.processActionsFor.bind(this)));
-  }
-
-  /**
-   * Closes a game
-   * @param id
-   */
-  closeGame(id: number) {
-    if (this.gameInstances[id]) {
-      this.gameInstances[id].status = 'closed';
-    }
   }
 
   /**

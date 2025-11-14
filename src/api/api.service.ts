@@ -6,16 +6,9 @@ import { IGameUser,
          IGameInstance,
          IGameCard,
          IGameAction,
-         IApiRespondToActionParams,
-         IApiRespondToActionResponse,
-         IApiRequest,
-         IApiGetGameResponse,
-         IApiRefreshQueueAskParams,
-         IApiJoinQueueParams,
-         IApiQuitQueueParams,
          IGameInteraction,
-         IApiGetQueueParams,
-         IQueueInstance} from '@thefirstspine/types-matches';
+         IQueueInstance,
+         IGameResult} from '@thefirstspine/types-matches';
 import { randBetween } from '../utils/maths.utils';
 import { validate, ValidationError } from 'class-validator';
 import { ApiCreateQueueDto } from './api-create-queue.dto';
@@ -24,6 +17,7 @@ import { ApiJoinQueueDto } from './api-join-queue.dto';
 import { ApiRefreshQueueAskDto } from './api-refresh-queue-ask.dto';
 import { ApiQuitQueueDto } from './api-quit-queue.dto';
 import { ApiRespondToActionDto } from './api-respond-to-action.dto';
+import { ICard } from '@thefirstspine/types-game';
 
 /**
  * All the methods of the API are mapped here. The controller will call that
@@ -303,6 +297,40 @@ export class ApiService {
     };
   }
 
+  async addCard(request: IApiRequest<IApiRespondToActionParams>): Promise<IApiRespondToActionResponse> {
+    // Validate input
+    await this.validateAgainst(request.params, ApiRespondToActionDto);
+
+    // Get the ID of the game
+    const id: number|undefined = request.id;
+    if (!id) {
+      throw new ApiError('Required ID.', ApiError.CODE_INVALID_REQUEST);
+    }
+
+    // Get the game instance
+    const gameInstance: IGameInstance|null = await this.gameService.getGameInstance(id);
+    if (!gameInstance) {
+      throw new ApiError('Unknown game instance.', ApiError.CODE_METHOD_NOT_FOUND);
+    }
+
+    // Cannot respond to a non-opened game instance
+    if (gameInstance.status !== 'active') {
+      throw new ApiError('Non active game instance.', ApiError.CODE_INVALID_REQUEST);
+    }
+
+    // Store the response in the instance
+    const sent: boolean = await this.gameService.respondToAction(
+      gameInstance.id,
+      request.params.actionType,
+      request.user,
+      request.params.response);
+
+    // Response not sent
+    return {
+      sent,
+    };
+  }
+
   /**
    * Concede a game.
    * @param request
@@ -342,4 +370,68 @@ export class ApiService {
     return true;
   }
 
+}
+
+export interface IApiCreateQueueParams {
+  key: string;
+}
+
+export interface IApiGetGameResponse {
+  id: number;
+  status: 'active'|'ended'|'closed'|'conceded';
+  users: number[],
+  stats: {
+    cardsInHand: {
+      user: number,
+      value: number,
+    }[],
+    cardsInDeck: {
+      user: number,
+      value: number,
+    }[],
+  };
+  queue: string;
+  result?: IGameResult[];
+}
+
+export interface IApiGetQueueParams {
+  key: string;
+}
+
+export interface IApiQueueResponse {
+  key: string;
+  users: number[];
+}
+
+export interface IApiGetUsersResponse {
+  users: number[];
+}
+
+export interface IApiJoinQueueParams {
+  key: string;
+  cards: ICard[];
+  score: number;
+}
+
+export interface IApiQuitQueueParams {
+  key: string;
+}
+
+export interface IApiRefreshQueueAskParams {
+  key: string;
+}
+
+export interface IApiRequest<T> {
+  params: T;
+  user: number;
+  id?: number;
+}
+
+export interface IApiRespondToActionParams {
+  response: any;
+  actionType: string;
+}
+
+export interface IApiRespondToActionResponse {
+  sent: boolean;
 }

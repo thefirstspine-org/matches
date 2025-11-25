@@ -3,7 +3,7 @@ import { shuffle } from '../utils/array.utils';
 import { randBetween } from '../utils/maths.utils';
 import { IGameInstance, IGameUser, IGameCard, IGameAction, IGameInteraction } from '@thefirstspine/types-matches';
 import { GameAssetsService } from '../game-assets/game-assets.service';
-import { ICard } from '@thefirstspine/types-game';
+import { cardLocation, ICard } from '@thefirstspine/types-game';
 import { IGameType, IDeck } from '@thefirstspine/types-game';
 import { ArenaRoomsService } from '../rooms/arena-rooms.service';
 import { GameWorkerService } from './game-worker/game-worker.service';
@@ -207,14 +207,6 @@ export class GameService {
   }
 
   /**
-   * Loads an instance in the hot memory
-   * @param instance
-   */
-  loadInMemory(instance: IGameInstance) {
-    this.gameInstances[instance.id] = instance;
-  }
-
-  /**
    * Respond to an action. This response is scopped by game instance, type & user.
    * @param gameInstanceId
    * @param actionType
@@ -301,6 +293,8 @@ export class GameService {
           await this.gameWorkerService.getWorker(pendingGameAction.type).delete(gameInstance, pendingGameAction);
           // Dispatch event after each action
           this.gameHookService.dispatch(gameInstance, `action:deleted:${pendingGameAction.type}`, {user: pendingGameAction.user});
+          // Save the instance
+          await this.saveGameInstance(gameInstance);
         } else {
           // Something's wrong, delete the response
           this.logsService.error('Cannot execute game action', { gameAction: pendingGameAction });
@@ -357,19 +351,57 @@ export class GameService {
     }
   }
 
+  async addCard(gameInstanceId: number, user: number, card: ICard, location?: cardLocation, coords?: {x: number, y: number}): Promise<boolean> {
+    const gameInstance = await this.getGameInstance(gameInstanceId);
+
+    if (!gameInstance) {
+      this.logsService.error('Game instance not found.', { gameInstanceId });
+      return false;
+    }
+
+    if (gameInstance.status !== 'active') {
+      this.logsService.info('Game instance not active.', { gameInstanceId: gameInstance.id });
+      await this.purgeFromMemory(gameInstance);
+      return false;
+    }
+
+    const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
+    const gameCard: IGameCard = {
+      user,
+      location: location ? location : 'deck',
+      coords: coords ? coords : undefined,
+      id: `${gameInstance.id}_${randomId}`,
+      currentStats: card.stats ? JSON.parse(JSON.stringify(card.stats)) : undefined,
+      metadata: {},
+      card: JSON.parse(JSON.stringify(card)),
+    };
+    gameInstance.cards.push(gameCard);
+
+    // Refresh the pending actions
+    const refreshPromises: Array<Promise<void>> = gameInstance.actions.current.map(async (action: IGameAction<IGameInteraction>) => {
+        await this.gameWorkerService.getWorker(action.type).refresh(gameInstance, action);
+        return this.gameHookService.dispatch(gameInstance, `action:refreshed:${action.type}`, {user: action.user, action});
+    });
+    await Promise.all(refreshPromises);
+
+    // Notify users
+    await this.messagingService.sendMessage(
+      gameInstance.gameUsers.map((u: IGameUser) => u.user),
+      `TheFirstSpine:game:${gameInstance.id}:cardChanged`,
+      {
+        changes: {
+        },
+        gameCard,
+      });
+
+    await this.saveGameInstance(gameInstance);
+
+    return true;
+  }
+
   async lookForPendingActions() {
     // Main loop on the games instances
     return Promise.all(this.getGameInstances().map(this.processActionsFor.bind(this)));
-  }
-
-  /**
-   * Closes a game
-   * @param id
-   */
-  closeGame(id: number) {
-    if (this.gameInstances[id]) {
-      this.gameInstances[id].status = 'closed';
-    }
   }
 
   /**

@@ -105,13 +105,13 @@ jobs:
                 env: dev
                 realm: 'default'
                 mongo_host: '${{ secrets.ansible_conf_mongo_host_dev }}'
-                private_key: '{{ lookup('file', '/volume/keys/matches-private.key') }}'
+                private_key: "{{ lookup('file', '/volume/keys/matches-private.key') }}"
                 auth_domain: 'auth.thefirstspine.fr'
                 messaging_domain: 'messaging.thefirstspine.fr'
-                messaging_public_key: '{{ lookup('file', '/volume/keys/messaging-public.cert') }}'
+                messaging_public_key: "{{ lookup('file', '/volume/keys/messaging-public.cert') }}"
                 game_assets_domain: 'game-assets.thefirstspine.fr'
                 rooms_domain: 'rooms.thefirstspine.fr'
-                rooms_public_key: '{{ lookup('file', '/volume/keys/rooms-public.cert') }}'
+                rooms_public_key: "{{ lookup('file', '/volume/keys/rooms-public.cert') }}"
                 # Host settings
                 external_port: 8080
                 internal_port: 8090
@@ -148,13 +148,13 @@ jobs:
                 env: prod
                 realm: 'default'
                 mongo_host: '${{ secrets.ansible_conf_mongo_host_prod }}'
-                private_key: '{{ lookup('file', '/volume/keys/matches-private.key') }}'
+                private_key: "{{ lookup('file', '/volume/keys/matches-private.key') }}"
                 auth_domain: 'auth.thefirstspine.fr'
                 messaging_domain: 'messaging.thefirstspine.fr'
-                messaging_public_key: '{{ lookup('file', '/volume/keys/messaging-public.cert') }}'
+                messaging_public_key: "{{ lookup('file', '/volume/keys/messaging-public.cert') }}"
                 game_assets_domain: 'game-assets.thefirstspine.fr'
                 rooms_domain: 'rooms.thefirstspine.fr'
-                rooms_public_key: '{{ lookup('file', '/volume/keys/rooms-public.cert') }}'
+                rooms_public_key: "{{ lookup('file', '/volume/keys/rooms-public.cert') }}"
                 # Host settings
                 external_port: 8080
                 internal_port: 8090

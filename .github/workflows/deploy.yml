@@ -113,7 +113,7 @@ jobs:
                 rooms_domain: 'rooms.thefirstspine.fr'
                 rooms_public_key: "{{ lookup('file', '/volume/keys/rooms-public.cert') }}"
                 # Host settings
-                external_port: 8080
+                external_port: 8081
                 internal_port: 8090
                 domain: 'dev.matches.thefirstspine.fr'
                 cerbot_email: '${{ secrets.ansible_conf_cerbot_email }}'
@@ -156,7 +156,7 @@ jobs:
                 rooms_domain: 'rooms.thefirstspine.fr'
                 rooms_public_key: "{{ lookup('file', '/volume/keys/rooms-public.cert') }}"
                 # Host settings
-                external_port: 8080
+                external_port: 8081
                 internal_port: 8090
                 domain: 'prod.matches.thefirstspine.fr'
                 cerbot_email: '${{ secrets.ansible_conf_cerbot_email }}'

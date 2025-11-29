@@ -1,12 +1,13 @@
 name: Deploy app
 on:
-  release:
-    types:
-      - published
   workflow_dispatch:
+  push:
+    branches:
+      - 'next'
+      - 'master'
 jobs:
   tests:
-    name: Tests
+    name: 🧪 Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -15,30 +16,212 @@ jobs:
           fetch-depth: 0
       - name: Install
         run: npm install
-  deploy:
-    name: Deploy app
+      - name: Testing
+        run: npm run test
+  build-push:
+    name: 🔥 Build & push
     runs-on: ubuntu-latest
     needs: [tests]
     steps:
+      - name: Set short commit SHA and ENV
+        run: |
+          echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          elif [ "${GITHUB_REF}" = "refs/heads/next" ]; then
+            echo "ENV=dev" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+          fi
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.registry_token }}
+      - name: Build & Push Docker image (prod)
+        uses: docker/build-push-action@v4
+        if: env.ENV == 'prod'
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ env.TAG }},ghcr.io/${{ github.repository }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:cache
+          cache-to: type=inline
+      - name: Build & Push Docker image (dev)
+        if: env.ENV == 'dev'
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ env.TAG }},ghcr.io/${{ github.repository }}:latest-dev
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:cache
+          cache-to: type=inline
+  deploy:
+    name: 🚀 Deploy
+    needs: [build-push]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set short commit SHA and ENV
+        run: |
+          echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          elif [ "${GITHUB_REF}" = "refs/heads/next" ]; then
+            echo "ENV=dev" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+          fi
       - name: Checkout Ansible
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           repository: thefirstspine/ansible
-      - name: Get config
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          repository: thefirstspine/ansible-secrets
-          path: tmp
-          token: ${{ secrets.ACCESS_TOKEN }}
-      - name: Get inventory
+          ref: with-private-registries
+      - name: Ansible inventory builder (dev)
+        if: env.ENV == 'dev'
         run: |
-          rm -rf volume/conf
-          rm -rf volume/keys
-          mv tmp/conf volume/conf
-          mv tmp/keys volume/keys
-      - name: Build and run thefirstspine-org-ansible image
+          cat > ./volume/conf/inventory.yaml <<'YAML'
+          apps:
+            hosts:
+              app:
+                # SSH agent settings
+                ansible_connection: ssh
+                ansible_ssh_host: '${{ secrets.ansible_conf_ansible_ssh_host_dev }}'
+                ansible_ssh_user: '${{ secrets.ansible_conf_ansible_ssh_user_dev }}'
+                ansible_ssh_private_key_file: 'volume/keys/id_ansible'
+                ansible_ssh_host_key_checking: false
+                ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                # Image settings
+                registry: 'ghcr.io'
+                registry_username: '${{ github.actor }}'
+                registry_password: '${{ secrets.registry_token }}'
+                docker_image: 'ghcr.io/${{ github.repository }}:${{ env.TAG }}'
+                # Container env
+                env: dev
+                realm: 'default'
+                mongo_host: '${{ secrets.ansible_conf_mongo_host_dev }}'
+                private_key: '{{ lookup('file', '/volume/keys/matches-private.key') }}'
+                auth_domain: 'auth.thefirstspine.fr'
+                messaging_domain: 'messaging.thefirstspine.fr'
+                messaging_public_key: '{{ lookup('file', '/volume/keys/messaging-public.cert') }}'
+                game_assets_domain: 'game-assets.thefirstspine.fr'
+                rooms_domain: 'rooms.thefirstspine.fr'
+                rooms_public_key: '{{ lookup('file', '/volume/keys/rooms-public.cert') }}'
+                # Host settings
+                external_port: 8080
+                internal_port: 8090
+                domain: 'dev.matches.thefirstspine.fr'
+                cerbot_email: '${{ secrets.ansible_conf_cerbot_email }}'
+          YAML
+      - name: Write keys (dev)
+        if: env.ENV == 'dev'
+        run: |
+          printf '%s\n' "${{ secrets.ansible_key_id_ansible_dev }}" > ./volume/keys/id_ansible
+          printf '%s\n' "${{ secrets.private_key_matches_private_key_dev }}" > ./volume/keys/matches-private.key
+          printf '%s\n' "${{ secrets.shop_public_key_shop_public_cert_dev }}" > ./volume/keys/shop-public.cert
+          printf '%s\n' "${{ secrets.messaging_public_key_messaging_public_cert_dev }}" > ./volume/keys/messaging-public.cert
+      - name: Ansible inventory builder (prod)
+        if: env.ENV == 'prod'
+        run: |
+          cat > ./volume/conf/inventory.yaml <<'YAML'
+          apps:
+            hosts:
+              app:
+                # SSH agent settings
+                ansible_connection: ssh
+                ansible_ssh_host: '${{ secrets.ansible_conf_ansible_ssh_host_prod }}'
+                ansible_ssh_user: '${{ secrets.ansible_conf_ansible_ssh_user_prod }}'
+                ansible_ssh_private_key_file: 'volume/keys/id_ansible'
+                ansible_ssh_host_key_checking: false
+                ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                # Image settings
+                registry: 'ghcr.io'
+                registry_username: '${{ github.actor }}'
+                registry_password: '${{ secrets.registry_token }}'
+                docker_image: 'ghcr.io/${{ github.repository }}:${{ env.TAG }}'
+                # Container env
+                env: prod
+                realm: 'default'
+                mongo_host: '${{ secrets.ansible_conf_mongo_host_prod }}'
+                private_key: '{{ lookup('file', '/volume/keys/matches-private.key') }}'
+                auth_domain: 'auth.thefirstspine.fr'
+                messaging_domain: 'messaging.thefirstspine.fr'
+                messaging_public_key: '{{ lookup('file', '/volume/keys/messaging-public.cert') }}'
+                game_assets_domain: 'game-assets.thefirstspine.fr'
+                rooms_domain: 'rooms.thefirstspine.fr'
+                rooms_public_key: '{{ lookup('file', '/volume/keys/rooms-public.cert') }}'
+                # Host settings
+                external_port: 8080
+                internal_port: 8090
+                domain: 'prod.matches.thefirstspine.fr'
+                cerbot_email: '${{ secrets.ansible_conf_cerbot_email }}'
+          YAML
+      - name: Write keys (prod)
+        if: env.ENV == 'prod'
+        run: |
+          printf '%s\n' "${{ secrets.ansible_key_id_ansible_prod }}" > ./volume/keys/id_ansible
+          printf '%s\n' "${{ secrets.private_key_matches_private_key_prod }}" > ./volume/keys/matches-private.key
+          printf '%s\n' "${{ secrets.shop_public_key_shop_public_cert_prod }}" > ./volume/keys/shop-public.cert
+          printf '%s\n' "${{ secrets.messaging_public_key_messaging_public_cert_prod }}" > ./volume/keys/messaging-public.cert
+      - name: Ansible deploy
         run: |
           docker build . -t thefirstspine-org-ansible &&
-          docker run --rm -v ./volume:/volume -e BRANCH=${GITHUB_REF#refs/*/} thefirstspine-org-ansible ansible-playbook -i /volume/conf/inventory.yaml /volume/playbooks/deploy-matches.yaml
+          docker run \
+            --rm \
+            -v ./volume:/volume \
+            thefirstspine-org-ansible \
+            ansible-playbook \
+            -i /volume/conf/inventory.yaml \
+            /volume/playbooks/deploy-matches.yaml
+  prune-images:
+    name: 🧹 Prune GHCR images older than 3h
+    runs-on: ubuntu-latest
+    needs: [build-push]
+    steps:
+      - name: Install gh & jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
+      - name: Authenticate gh
+        run: echo "${{ secrets.registry_token }}" | gh auth login --with-token
+      - name: Prune images older than 3 hours
+        env:
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          THRESHOLD_SECS: 10800
+        run: |
+          set -eu
+          now_ts=$(date +%s)
+          echo "Pruning container package versions for $OWNER/$REPO older than $THRESHOLD_SECS seconds"
+          for scope in orgs users; do
+            endpoint="/$scope/$OWNER/packages/container/$REPO/versions"
+            echo "Listing $endpoint"
+            data=$(gh api -H "Accept: application/vnd.github.v3+json" --paginate "$endpoint" 2>/dev/null || true)
+            echo "$data"
+            if [ -z "$data" ] || [ "$data" = "null" ]; then
+              echo "No data for $endpoint"
+              continue
+            fi
+            echo "$data" | jq -c '.[] | {id:.id,created_at:.created_at}' | while read -r item; do
+              id=$(echo "$item" | jq -r '.id')
+              created=$(echo "$item" | jq -r '.created_at')
+              created_ts=$(date -d "$created" +%s)
+              age=$((now_ts - created_ts))
+              if [ "$age" -gt "$THRESHOLD_SECS" ]; then
+                echo "Deleting version $id (age ${age}s, created $created)"
+                gh api -X DELETE "$endpoint/$id" || echo "Delete failed for $id"
+              else
+                echo "Keeping version $id (age ${age}s)"
+              fi
+            done
+          done

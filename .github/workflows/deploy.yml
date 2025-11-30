@@ -106,11 +106,11 @@ jobs:
                 realm: 'default'
                 mongo_host: '${{ secrets.ansible_conf_mongo_host_dev }}'
                 private_key: "{{ lookup('file', '/volume/keys/matches-private.key') }}"
-                auth_domain: 'auth.thefirstspine.fr'
-                messaging_domain: 'messaging.thefirstspine.fr'
+                auth_domain: 'dev.auth.thefirstspine.fr'
+                messaging_domain: 'dev.messaging.thefirstspine.fr'
                 messaging_public_key: "{{ lookup('file', '/volume/keys/messaging-public.cert') }}"
-                game_assets_domain: 'game-assets.thefirstspine.fr'
-                rooms_domain: 'rooms.thefirstspine.fr'
+                game_assets_domain: 'dev.game-assets.thefirstspine.fr'
+                rooms_domain: 'dev.rooms.thefirstspine.fr'
                 rooms_public_key: "{{ lookup('file', '/volume/keys/rooms-public.cert') }}"
                 # Host settings
                 external_port: 8080
@@ -124,7 +124,7 @@ jobs:
           printf '%s\n' "${{ secrets.ansible_key_id_ansible_dev }}" > ./volume/keys/id_ansible
           printf '%s\n' "${{ secrets.private_key_matches_private_key_dev }}" > ./volume/keys/matches-private.key
           printf '%s\n' "${{ secrets.messaging_public_key_messaging_public_cert_dev }}" > ./volume/keys/messaging-public.cert
-          printf '%s\n' "${{ secrets.messaging_public_key_rooms_public_cert_dev }}" > ./volume/keys/rooms-public.cert
+          printf '%s\n' "${{ secrets.room_public_key_rooms_public_cert_dev }}" > ./volume/keys/rooms-public.cert
       - name: Ansible inventory builder (prod)
         if: env.ENV == 'prod'
         run: |
@@ -158,7 +158,7 @@ jobs:
                 # Host settings
                 external_port: 8080
                 internal_port: 8081
-                domain: 'prod.matches.thefirstspine.fr'
+                domain: 'matches.thefirstspine.fr'
                 cerbot_email: '${{ secrets.ansible_conf_cerbot_email }}'
           YAML
       - name: Write keys (prod)
@@ -167,7 +167,7 @@ jobs:
           printf '%s\n' "${{ secrets.ansible_key_id_ansible_prod }}" > ./volume/keys/id_ansible
           printf '%s\n' "${{ secrets.private_key_matches_private_key_prod }}" > ./volume/keys/matches-private.key
           printf '%s\n' "${{ secrets.messaging_public_key_messaging_public_cert_prod }}" > ./volume/keys/messaging-public.cert
-          printf '%s\n' "${{ secrets.messaging_public_key_rooms_public_cert_prod }}" > ./volume/keys/rooms-public.cert
+          printf '%s\n' "${{ secrets.room_public_key_rooms_public_cert_prod }}" > ./volume/keys/rooms-public.cert
       - name: Ansible deploy
         run: |
           docker build . -t thefirstspine-org-ansible &&

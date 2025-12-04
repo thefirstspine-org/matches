@@ -368,7 +368,7 @@ export class GameService {
     const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
     const gameCard: IGameCard = {
       user,
-      location: location ? location : 'deck',
+      location: 'banned', // banned first, will be modified right after
       coords: coords ? coords : undefined,
       id: `${gameInstance.id}_${randomId}`,
       currentStats: card.stats ? JSON.parse(JSON.stringify(card.stats)) : undefined,
@@ -376,6 +376,42 @@ export class GameService {
       card: JSON.parse(JSON.stringify(card)),
     };
     gameInstance.cards.push(gameCard);
+
+    await this.saveGameInstance(gameInstance);
+
+    // Modify card location
+    await this.modifyCard(gameInstanceId, gameCard.id, {location});
+
+    return true;
+  }
+
+  async modifyCard(gameInstanceId: number, cardId: string, changes: {location?: cardLocation, coords?: {x: number, y: number}}): Promise<boolean> {
+    const gameInstance = await this.getGameInstance(gameInstanceId);
+
+    if (!gameInstance) {
+      this.logsService.error('Game instance not found.', { gameInstanceId });
+      return false;
+    }
+
+    if (gameInstance.status !== 'active') {
+      this.logsService.info('Game instance not active.', { gameInstanceId: gameInstance.id });
+      await this.purgeFromMemory(gameInstance);
+      return false;
+    }
+
+    // Get card & modify it
+    const gameCardIndex = gameInstance.cards.findIndex(c => c.id === cardId);
+    if (gameCardIndex === -1) {
+      this.logsService.error('Game card not found.', { gameInstanceId, cardId });
+      return false;
+    }
+    if (changes.location) {
+      gameInstance.cards[gameCardIndex].location = changes.location;
+    }
+    if (changes.coords) {
+      gameInstance.cards[gameCardIndex].coords = changes.coords;
+    }
+    await this.saveGameInstance(gameInstance);
 
     // Refresh the pending actions
     const refreshPromises: Array<Promise<void>> = gameInstance.actions.current.map(async (action: IGameAction<IGameInteraction>) => {
@@ -386,17 +422,14 @@ export class GameService {
 
     // Notify users
     await this.messagingService.sendMessage(
-      gameInstance.gameUsers.map((u: IGameUser) => u.user),
-      `TheFirstSpine:game:${gameInstance.id}:cardChanged`,
+      '*',
+      `TheFirstSpine:game:${gameInstance.id}:action`,
       {
-        changes: {
-        },
-        gameCard,
-      });
+        type: 'cardModified',
+      },
+    );
 
     await this.saveGameInstance(gameInstance);
-
-    return true;
   }
 
   async lookForPendingActions() {

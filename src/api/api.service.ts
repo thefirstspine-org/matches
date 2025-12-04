@@ -19,6 +19,7 @@ import { ApiQuitQueueDto } from './api-quit-queue.dto';
 import { ApiRespondToActionDto } from './api-respond-to-action.dto';
 import { cardLocation, ICard } from '@thefirstspine/types-game';
 import { ApiAddCardDto } from './api-add-card.dto';
+import { ApiModifyCardDto } from './api-modify-card.dto';
 
 /**
  * All the methods of the API are mapped here. The controller will call that
@@ -319,9 +320,6 @@ export class ApiService {
       throw new ApiError('Non active game instance.', ApiError.CODE_INVALID_REQUEST);
     }
 
-    console.log({request});
-    console.log(request.params.user);
-    console.log(request.user);
     const added = await this.gameService.addCard(
       id,
       request.params.user ? request.params.user : request.user,
@@ -333,6 +331,40 @@ export class ApiService {
     // Response not sent
     return {
       added,
+    };
+  }
+
+  async modifyCard(request: IApiRequest<IApiModifyCardParams>): Promise<IApiModifyCardResponse> {
+    // Validate input
+    await this.validateAgainst(request.params, ApiModifyCardDto);
+
+    // Get the ID of the game
+    const id: number|undefined = request.id;
+    if (!id) {
+      throw new ApiError('Required ID.', ApiError.CODE_INVALID_REQUEST);
+    }
+
+    // Get the game instance
+    const gameInstance: IGameInstance|null = await this.gameService.getGameInstance(id);
+    if (!gameInstance) {
+      throw new ApiError('Unknown game instance.', ApiError.CODE_METHOD_NOT_FOUND);
+    }
+
+    // Cannot add a card to a non-opened game instance
+    if (gameInstance.status !== 'active') {
+      throw new ApiError('Non active game instance.', ApiError.CODE_INVALID_REQUEST);
+    }
+
+    const added = await this.gameService.modifyCard(
+      id,
+      request.params.id,
+      {
+        ...request.params,
+      }
+    );
+
+    return {
+      modified: true,
     };
   }
 
@@ -450,4 +482,14 @@ export interface IApiAddCardParams {
 
 export interface IApiAddCardResponse {
   added: boolean;
+}
+
+export interface IApiModifyCardParams {
+  id: string;
+  location?: cardLocation;
+  coords?: {x: number, y: number};
+}
+
+export interface IApiModifyCardResponse {
+  modified: boolean;
 }

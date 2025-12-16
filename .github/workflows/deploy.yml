@@ -83,7 +83,6 @@ jobs:
         with:
           fetch-depth: 0
           repository: thefirstspine/ansible
-          ref: with-private-registries
       - name: Ansible inventory builder (dev)
         if: env.ENV == 'dev'
         run: |

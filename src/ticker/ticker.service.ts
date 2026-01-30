@@ -51,6 +51,15 @@ export class TickerService {
       }
     }
 
+    // Manages expires games every 60 ticks
+    if (this.tickCount % 60 === 0) {
+      try {
+        await this.gameService.processExpiredGames();
+      } catch (e) {
+        this.logsService.error(`Ticker expired games error`, {name: e.name, message: e.message, stack: e.stack});
+      }
+    }
+
     // Look for pending actions every tick
     try {
       await this.gameService.lookForPendingActions();

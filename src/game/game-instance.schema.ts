@@ -10,6 +10,9 @@ export class GameInstance implements IGameInstance {
   status: 'active' | 'ended' | 'closed' | 'conceded';
 
   @Prop()
+  createdAt: Date;
+
+  @Prop()
   id: number;
 
   @Prop()

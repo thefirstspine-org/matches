@@ -31,7 +31,7 @@
     "@thefirstspine/logs-nest": "^12.0.4",
     "@thefirstspine/messaging-nest": "2.0.13",
     "@thefirstspine/types-game": "^1.1.4",
-    "@thefirstspine/types-matches": "^3.3.1",
+    "@thefirstspine/types-matches": "^3.4.0",
     "axios": "^1.13.2",
     "chalk": "^5.6.2",
     "class-transformer": ">=0.5.1",

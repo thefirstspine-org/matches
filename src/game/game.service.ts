@@ -442,12 +442,13 @@ export class GameService {
     // Close games instances older than 2h
     const now = Date.now();
     const promises: Array<Promise<void>> = this.getGameInstances().map(async (gameInstance: IGameInstance) => {
-      if (gameInstance.createdAt.getTime() + (2 * 60 * 60 * 1000) < now) {
+      if ((gameInstance.createdAt ? gameInstance.createdAt.getTime() : 0) + (2 * 60 * 60 * 1000) < now) {
         this.logsService.info('Expire game instance.', { gameInstanceId: gameInstance.id });
         gameInstance.status = 'closed';
         await this.purgeFromMemory(gameInstance);
       }
     });
+    await Promise.all(promises);
   }
 
   /**

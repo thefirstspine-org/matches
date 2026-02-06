@@ -65,6 +65,23 @@ export class CardPlacedGameHook implements IGameHook {
       }
     }
 
+    if (params.gameCard?.currentStats?.effects?.includes('talon')) {
+      // Get the player card of the user
+      const user: number = params.gameCard.user;
+      const wizardCard: IGameCard|undefined = gameInstance.cards.find((c: IGameCard) => {
+        return c.card.type === 'player' && c.user === user;
+      });
+
+      // Guard for wizard card existence
+      if (wizardCard) {
+        // Add life to the wizard
+        wizardCard.currentStats.bottom.strength += 1;
+        wizardCard.currentStats.left.strength += 1;
+        wizardCard.currentStats.right.strength += 1;
+        wizardCard.currentStats.top.strength += 1;
+      }
+    }
+
     if (params.gameCard?.currentStats?.effects?.includes('torturer')) {
       // Get the player card of the user
       const user: number = params.gameCard.user;

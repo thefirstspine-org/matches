@@ -24,35 +24,35 @@ export class ActionExecutedGameHook implements IGameHook {
         c.metadata.aurastrength = 0;
       }
       if (c.metadata?.weaknessStrengthTop) {
-        c.currentStats.top.strength += c.metadata.weaknessStrengthTop;
+        c.currentStats.top.strength -= c.metadata.weaknessStrengthTop;
         c.metadata.weaknessStrengthTop = 0;
       }
       if (c.metadata?.weaknessStrengthRight) {
-        c.currentStats.right.strength += c.metadata.weaknessStrengthRight;
+        c.currentStats.right.strength -= c.metadata.weaknessStrengthRight;
         c.metadata.weaknessStrengthRight = 0;
       }
       if (c.metadata?.weaknessStrengthBottom) {
-        c.currentStats.bottom.strength += c.metadata.weaknessStrengthBottom;
+        c.currentStats.bottom.strength -= c.metadata.weaknessStrengthBottom;
         c.metadata.weaknessStrengthBottom = 0;
       }
       if (c.metadata?.weaknessStrengthLeft) {
-        c.currentStats.left.strength += c.metadata.weaknessStrengthLeft;
+        c.currentStats.left.strength -= c.metadata.weaknessStrengthLeft;
         c.metadata.weaknessStrengthLeft = 0;
       }
       if (c.metadata?.breakDefenseTop) {
-        c.currentStats.top.defense += c.metadata.breakDefenseTop;
+        c.currentStats.top.defense -= c.metadata.breakDefenseTop;
         c.metadata.breakDefenseTop = 0;
       }
       if (c.metadata?.breakDefenseRight) {
-        c.currentStats.right.defense += c.metadata.breakDefenseRight;
+        c.currentStats.right.defense -= c.metadata.breakDefenseRight;
         c.metadata.breakDefenseRight = 0;
       }
       if (c.metadata?.breakDefenseBottom) {
-        c.currentStats.bottom.defense += c.metadata.breakDefenseBottom;
+        c.currentStats.bottom.defense -= c.metadata.breakDefenseBottom;
         c.metadata.breakDefenseBottom = 0;
       }
       if (c.metadata?.breakDefenseLeft) {
-        c.currentStats.left.defense += c.metadata.breakDefenseLeft;
+        c.currentStats.left.defense -= c.metadata.breakDefenseLeft;
         c.metadata.breakDefenseLeft = 0;
       }
       if (c.metadata?.guardDefense) {
@@ -252,12 +252,12 @@ export class ActionExecutedGameHook implements IGameHook {
               cardTarget.metadata.breakDefenseTop = cardTarget.metadata.breakDefenseTop ?
                 cardTarget.metadata.breakDefenseTop - 2 :
                 -2;
-              cardTarget.currentStats.bottom.defense -= 2;
+              cardTarget.currentStats.top.defense -= 2;
             } else {
               cardTarget.metadata.breakDefenseTop = cardTarget.metadata.breakDefenseTop ?
                 cardTarget.metadata.breakDefenseTop - cardTarget.currentStats.top.defense :
                 -cardTarget.currentStats.top.defense;
-              cardTarget.currentStats.bottom.defense = 0;
+              cardTarget.currentStats.top.defense = 0;
             }
             if (cardTarget.currentStats.right.defense >= 2) {
               cardTarget.metadata.breakDefenseRight = cardTarget.metadata.breakDefenseRight ?

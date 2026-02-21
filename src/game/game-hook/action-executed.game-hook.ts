@@ -2,7 +2,7 @@ import { IGameHook } from './game-hook.interface';
 import { Injectable } from '@nestjs/common';
 import { IGameInstance, IGameCard, IGameAction } from '@thefirstspine/types-matches';
 import { ICardCoords } from '@thefirstspine/types-game';
-import { rotateCard } from '../../utils/game.utils';
+import { getSubjectiveSides, rotateCard } from '../../utils/game.utils';
 
 @Injectable()
 export class ActionExecutedGameHook implements IGameHook {
@@ -123,11 +123,12 @@ export class ActionExecutedGameHook implements IGameHook {
       const rotatedCard: IGameCard = rotateCard(gameCard, gameInstance);
       
       // Sides of the card
+      const subjectivesSides = getSubjectiveSides(gameCard.user, gameInstance);
       const sides = [
-        {x: rotatedCard.coords.x + 1, y: rotatedCard.coords.y},
-        {x: rotatedCard.coords.x - 1, y: rotatedCard.coords.y},
-        {x: rotatedCard.coords.x, y: rotatedCard.coords.y + 1},
-        {x: rotatedCard.coords.x, y: rotatedCard.coords.y - 1},
+        {x: subjectivesSides[0].x + rotatedCard.coords.x, y: subjectivesSides[0].y + rotatedCard.coords.y},
+        {x: subjectivesSides[1].x + rotatedCard.coords.x, y: subjectivesSides[1].y + rotatedCard.coords.y},
+        {x: subjectivesSides[2].x + rotatedCard.coords.x, y: subjectivesSides[2].y + rotatedCard.coords.y},
+        {x: subjectivesSides[3].x + rotatedCard.coords.x, y: subjectivesSides[3].y + rotatedCard.coords.y},
       ];
 
       // Increase aura

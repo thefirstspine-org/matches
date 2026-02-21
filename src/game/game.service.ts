@@ -282,7 +282,7 @@ export class GameService {
       try {
         if (await this.gameWorkerService.getWorker(pendingGameAction.type).execute(gameInstance, pendingGameAction)) {
           // Dispatch event after each action
-          this.gameHookService
+          await this.gameHookService
             .dispatch(gameInstance, `action:executed:${pendingGameAction.type}`, {user: pendingGameAction.user, action: pendingGameAction});
           // Send to the other players that the action succeed
           this.messagingService.sendMessage(

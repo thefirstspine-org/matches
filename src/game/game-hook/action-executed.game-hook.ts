@@ -23,21 +23,21 @@ export class ActionExecutedGameHook implements IGameHook {
         c.currentStats.top.strength -= c.metadata.aurastrength;
         c.metadata.aurastrength = 0;
       }
-      if (c.metadata?.weaknesStrengthTop) {
-        c.currentStats.top.strength += c.metadata.weaknesStrengthTop;
-        c.metadata.weaknesStrengthTop = 0;
+      if (c.metadata?.weaknessStrengthTop) {
+        c.currentStats.top.strength += c.metadata.weaknessStrengthTop;
+        c.metadata.weaknessStrengthTop = 0;
       }
-      if (c.metadata?.weaknesStrengthRight) {
-        c.currentStats.right.strength += c.metadata.weaknesStrengthRight;
-        c.metadata.weaknesStrengthRight = 0;
+      if (c.metadata?.weaknessStrengthRight) {
+        c.currentStats.right.strength += c.metadata.weaknessStrengthRight;
+        c.metadata.weaknessStrengthRight = 0;
       }
-      if (c.metadata?.weaknesStrengthBottom) {
-        c.currentStats.bottom.strength += c.metadata.weaknesStrengthBottom;
-        c.metadata.weaknesStrengthBottom = 0;
+      if (c.metadata?.weaknessStrengthBottom) {
+        c.currentStats.bottom.strength += c.metadata.weaknessStrengthBottom;
+        c.metadata.weaknessStrengthBottom = 0;
       }
-      if (c.metadata?.weaknesStrengthLeft) {
-        c.currentStats.left.strength += c.metadata.weaknesStrengthLeft;
-        c.metadata.weaknesStrengthLeft = 0;
+      if (c.metadata?.weaknessStrengthLeft) {
+        c.currentStats.left.strength += c.metadata.weaknessStrengthLeft;
+        c.metadata.weaknessStrengthLeft = 0;
       }
       if (c.metadata?.breakDefenseTop) {
         c.currentStats.top.defense += c.metadata.breakDefenseTop;
@@ -189,46 +189,46 @@ export class ActionExecutedGameHook implements IGameHook {
           });
           if (cardTarget !== undefined) {
             if (cardTarget.currentStats.top.strength >= 2) {
-              cardTarget.metadata.weaknesStrengthTop = cardTarget.metadata.weaknesStrengthTop ?
-                cardTarget.metadata.weaknesStrengthTop - 2 :
+              cardTarget.metadata.weaknessStrengthTop = cardTarget.metadata.weaknessStrengthTop ?
+                cardTarget.metadata.weaknessStrengthTop - 2 :
                 -2;
               cardTarget.currentStats.top.strength -= 2;
             } else {
-              cardTarget.metadata.weaknesStrengthTop = cardTarget.metadata.weaknesStrengthTop ?
-                cardTarget.metadata.weaknesStrengthTop - cardTarget.currentStats.top.strength :
+              cardTarget.metadata.weaknessStrengthTop = cardTarget.metadata.weaknessStrengthTop ?
+                cardTarget.metadata.weaknessStrengthTop - cardTarget.currentStats.top.strength :
                 -cardTarget.currentStats.top.strength;
               cardTarget.currentStats.top.strength = 0;
             }
             if (cardTarget.currentStats.right.strength >= 2) {
-              cardTarget.metadata.weaknesStrengthRight = cardTarget.metadata.weaknesStrengthRight ?
-                cardTarget.metadata.weaknesStrengthRight - 2 :
+              cardTarget.metadata.weaknessStrengthRight = cardTarget.metadata.weaknessStrengthRight ?
+                cardTarget.metadata.weaknessStrengthRight - 2 :
                 -2;
               cardTarget.currentStats.right.strength -= 2;
             } else {
-              cardTarget.metadata.weaknesStrengthRight = cardTarget.metadata.weaknesStrengthRight ?
-                cardTarget.metadata.weaknesStrengthRight - cardTarget.currentStats.right.strength :
+              cardTarget.metadata.weaknessStrengthRight = cardTarget.metadata.weaknessStrengthRight ?
+                cardTarget.metadata.weaknessStrengthRight - cardTarget.currentStats.right.strength :
                 -cardTarget.currentStats.right.strength;
               cardTarget.currentStats.right.strength = 0;
             }
             if (cardTarget.currentStats.bottom.strength >= 2) {
-              cardTarget.metadata.weaknesStrengthBottom = cardTarget.metadata.weaknesStrengthBottom ?
-                cardTarget.metadata.weaknesStrengthBottom - 2 :
+              cardTarget.metadata.weaknessStrengthBottom = cardTarget.metadata.weaknessStrengthBottom ?
+                cardTarget.metadata.weaknessStrengthBottom - 2 :
                 -2;
               cardTarget.currentStats.bottom.strength -= 2;
             } else {
-              cardTarget.metadata.weaknesStrengthBottom = cardTarget.metadata.weaknesStrengthBottom ?
-                cardTarget.metadata.weaknesStrengthBottom - cardTarget.currentStats.bottom.strength :
+              cardTarget.metadata.weaknessStrengthBottom = cardTarget.metadata.weaknessStrengthBottom ?
+                cardTarget.metadata.weaknessStrengthBottom - cardTarget.currentStats.bottom.strength :
                 -cardTarget.currentStats.bottom.strength;
               cardTarget.currentStats.bottom.strength = 0;
             }
             if (cardTarget.currentStats.left.strength >= 2) {
-              cardTarget.metadata.weaknesStrengthLeft = cardTarget.metadata.weaknesStrengthLeft ?
-                cardTarget.metadata.weaknesStrengthLeft - 2 :
+              cardTarget.metadata.weaknessStrengthLeft = cardTarget.metadata.weaknessStrengthLeft ?
+                cardTarget.metadata.weaknessStrengthLeft - 2 :
                 -2;
               cardTarget.currentStats.left.strength -= 2;
             } else {
-              cardTarget.metadata.weaknesStrengthLeft = cardTarget.metadata.weaknesStrengthLeft ?
-                cardTarget.metadata.weaknesStrengthLeft - cardTarget.currentStats.left.strength :
+              cardTarget.metadata.weaknessStrengthLeft = cardTarget.metadata.weaknessStrengthLeft ?
+                cardTarget.metadata.weaknessStrengthLeft - cardTarget.currentStats.left.strength :
                 -cardTarget.currentStats.left.strength;
               cardTarget.currentStats.left.strength = 0;
             }
@@ -238,7 +238,7 @@ export class ActionExecutedGameHook implements IGameHook {
 
       // Decrease break
       ['right', 'left', 'bottom', 'top'].forEach((side: string, sideIndex: number) => {
-        if (rotatedCard?.currentStats?.[side]?.capacity === 'weakness') {
+        if (rotatedCard?.currentStats?.[side]?.capacity === 'break') {
           // Find a card on the board, with the same user to the position
           const position: ICardCoords = sides[sideIndex];
           const cardTarget: IGameCard|undefined = cardsOnBoard.find((cardTargetPotential: IGameCard) => {

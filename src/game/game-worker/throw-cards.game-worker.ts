@@ -1,6 +1,5 @@
 import { IGameWorker } from './game-worker.interface';
 import { IGameInstance, IGameAction, IGameCard, IInteractionMoveCardToDiscard } from '@thefirstspine/types-matches';
-import { isArray } from 'util';
 import { Injectable } from '@nestjs/common';
 import { GameHookService } from '../game-hook/game-hook.service';
 import { IHasGameHookService } from '../injections.interface';
@@ -59,8 +58,7 @@ export class ThrowCardsGameWorker implements IGameWorker, IHasGameHookService {
    * @inheritdoc
    */
   public async execute(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionMoveCardToDiscard>): Promise<boolean> {
-    // Validate response form
-    if (!isArray(gameAction.response.handIndexes)) {
+    if (!Array.isArray(gameAction.response.handIndexes)) {
       this.logsService.warning('Response in a wrong format', gameAction);
       return false;
     }

@@ -173,9 +173,13 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
 
     await Promise.all(promisesEffects);
 
-    // Generate the actions of the user
-    const action: IGameAction<any> = await this.gameWorkerService.getWorker('throw-cards')
-      .create(gameInstance, {user: nextUser});
+    // Generate the action throw-card for the next user (mulligan for the first turn)
+    let action: IGameAction<any>;
+    if (gameInstance.actions.previous.filter((a: IGameAction<any>) => a.type === 'end-turn' && a.user === nextUser).length === 0) {
+      action = await this.gameWorkerService.getWorker('mulligan').create(gameInstance, {user: nextUser});
+    } else {
+      action = await this.gameWorkerService.getWorker('throw-cards').create(gameInstance, {user: nextUser});
+    }
     gameInstance.actions.current.push(action);
 
     return true;

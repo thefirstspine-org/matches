@@ -43,6 +43,7 @@ import { SpellOvilRuinGameWorker } from './spell-ovil-ruin.game-worker';
 import { SpellOvilPutrefactionGameWorker } from './spell-ovil-putrefaction.game-worker';
 import { SpellOvilHealGameWorker } from './spell-ovil-heal.game-worker';
 import { SpellOvilReconstructGameWorker } from './spell-ovil-reconstruct.game-worker';
+import { MulliganGameWorker } from './mulligan.game-worker';
 
 /**
  * Main service that manages game workers. Each game worker is responsible of a game action type. This service
@@ -116,6 +117,7 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     this.createInjectable(SpellOvilPutrefactionGameWorker, injectedProps);
     this.createInjectable(SpellOvilHealGameWorker, injectedProps);
     this.createInjectable(SpellOvilReconstructGameWorker, injectedProps);
+    this.createInjectable(MulliganGameWorker, injectedProps);
   }
 
   /**

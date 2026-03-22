@@ -58,6 +58,12 @@ export class ThrowCardsGameWorker implements IGameWorker, IHasGameHookService {
    * @inheritdoc
    */
   public async execute(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionMoveCardToDiscard>): Promise<boolean> {
+    // Validate response format
+    if (gameAction.response?.handIndexes?.length === undefined) {
+      this.logsService.warning('Response in a wrong format', gameAction);
+      return false;
+    }
+
     if (!Array.isArray(gameAction.response.handIndexes)) {
       this.logsService.warning('Response in a wrong format', gameAction);
       return false;

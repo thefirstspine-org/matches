@@ -60,59 +60,59 @@ export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHa
    * @inheritdoc
    */
   public async execute(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionMoveCardToDiscard>): Promise<boolean> {
-      // Validate response form
-      if (!Array.isArray(gameAction.response.handIndexes)) {
-        this.logsService.warning('Response in a wrong format', gameAction);
-        return false;
+    // Validate response format
+    if (gameAction.response?.handIndexes?.length === undefined) {
+      this.logsService.warning('Response in a wrong format', gameAction);
+      return false;
+    }
+
+    // Validate response inputs
+    const allowedHandIndexes: number[] = gameAction.interaction.params.handIndexes;
+    const responseHandIndexes: number[] = gameAction.response.handIndexes as number[];
+    const falseIndex: number[] = responseHandIndexes.filter((i: number) => !allowedHandIndexes.includes(i));
+    if (falseIndex.length) {
+      this.logsService.warning('Not allowed hand index', gameAction);
+      return false;
+    }
+
+    // Discard the cards
+    const cards: IGameCard[] = [];
+    gameInstance.cards.filter((c: IGameCard) => c.location === 'hand' && c.user === gameAction.user)
+                      .forEach((c: IGameCard, index: number) => {
+                        if (responseHandIndexes.includes(index)) {
+                          cards.push(c);
+                        }
+                      });
+
+    await Promise.all(cards.map((c: IGameCard) => {
+      c.location = 'discard';
+      return this.gameHookService.dispatch(gameInstance, `card:discarded:${c.card.id}`, {gameCard: c});
+    }));
+
+    // Pick the new cards
+    const currentCards: number = gameInstance.cards.filter(c => c.location === 'hand' && c.user === gameAction.user).length;
+    for (let i = currentCards; i < 6; i ++) {
+      const card = gameInstance.cards.find(c => c.location === 'deck' && c.user === gameAction.user);
+      if (card) {
+        card.location = 'hand';
+        await this.gameHookService.dispatch(gameInstance, `game:card:picked:${card.card.id}`);
       }
-  
-      // Validate response inputs
-      const allowedHandIndexes: number[] = gameAction.interaction.params.handIndexes;
-      const responseHandIndexes: number[] = gameAction.response.handIndexes as number[];
-      const falseIndex: number[] = responseHandIndexes.filter((i: number) => !allowedHandIndexes.includes(i));
-      if (falseIndex.length) {
-        this.logsService.warning('Not allowed hand index', gameAction);
-        return false;
-      }
-  
-      // Discard the cards
-      const cards: IGameCard[] = [];
-      gameInstance.cards.filter((c: IGameCard) => c.location === 'hand' && c.user === gameAction.user)
-                        .forEach((c: IGameCard, index: number) => {
-                          if (responseHandIndexes.includes(index)) {
-                            cards.push(c);
-                          }
-                        });
-  
-      await Promise.all(cards.map((c: IGameCard) => {
-        c.location = 'discard';
-        return this.gameHookService.dispatch(gameInstance, `card:discarded:${c.card.id}`, {gameCard: c});
-      }));
-  
-      // Pick the new cards
-      const currentCards: number = gameInstance.cards.filter(c => c.location === 'hand' && c.user === gameAction.user).length;
-      for (let i = currentCards; i < 6; i ++) {
-        const card = gameInstance.cards.find(c => c.location === 'deck' && c.user === gameAction.user);
-        if (card) {
-          card.location = 'hand';
-          await this.gameHookService.dispatch(gameInstance, `game:card:picked:${card.card.id}`);
-        }
-      }
-  
-      // Dispatch event
-      await this.gameHookService.dispatch(gameInstance, `game:phaseChanged:actions`, {user: gameAction.user});
-  
-      // Send message to rooms
-      const numCards: number = responseHandIndexes.length;
-      this.arenaRoomsService.sendMessageForGame(
-        gameInstance,
-        {
-          fr: `Défausse ${numCards} carte${(numCards > 1 ? 's' : '')}`,
-          en: `Discard ${numCards} card${(numCards > 1 ? 's' : '')}`,
-        },
-        gameAction.user);
-  
-      return true;
+    }
+
+    // Dispatch event
+    await this.gameHookService.dispatch(gameInstance, `game:phaseChanged:actions`, {user: gameAction.user});
+
+    // Send message to rooms
+    const numCards: number = responseHandIndexes.length;
+    this.arenaRoomsService.sendMessageForGame(
+      gameInstance,
+      {
+        fr: `Défausse ${numCards} carte${(numCards > 1 ? 's' : '')}`,
+        en: `Discard ${numCards} card${(numCards > 1 ? 's' : '')}`,
+      },
+      gameAction.user);
+
+    return true;
   }
 
   /**

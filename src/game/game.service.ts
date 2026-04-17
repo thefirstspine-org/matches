@@ -162,7 +162,11 @@ export class GameService {
   }
 
   async saveGameInstance(gameInstance: IGameInstance): Promise<IGameInstance> {
-    await this.gameInstanceModel.updateOne({id: gameInstance.id}, { gameInstance, id: undefined });
+    try {
+      await this.gameInstanceModel.updateOne({id: gameInstance.id}, gameInstance);
+    } catch (e) {
+      this.logsService.error('Error while saving game instance', {name: e.name, message: e.message, stack: e.stack});
+    }
     this.gameInstances[gameInstance.id] = gameInstance;
     return this.getGameInstance(gameInstance.id);
   }

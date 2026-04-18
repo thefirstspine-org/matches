@@ -47,6 +47,8 @@ import { MulliganGameWorker } from './mulligan.game-worker';
 import { SpellEnchantmentGameWorker } from './spell-enchantment.game-worker';
 import { SpellRageTheFateGameWorker } from './spell-rage-the-fate.game-worker';
 import { SpellBreakTheFateGameWorker } from './spell-break-the-fate.game-worker';
+import { SpellPlayTheFateGameWorker } from './spell-play-the-fate.game-worker';
+import { SpellPostponeTheFateGameWorker } from './spell-postpone-the-fate.game-worker';
 
 /**
  * Main service that manages game workers. Each game worker is responsible of a game action type. This service
@@ -124,6 +126,8 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     this.createInjectable(SpellEnchantmentGameWorker, injectedProps);
     this.createInjectable(SpellRageTheFateGameWorker, injectedProps);
     this.createInjectable(SpellBreakTheFateGameWorker, injectedProps);
+    this.createInjectable(SpellPlayTheFateGameWorker, injectedProps);
+    this.createInjectable(SpellPostponeTheFateGameWorker, injectedProps);
   }
 
   /**

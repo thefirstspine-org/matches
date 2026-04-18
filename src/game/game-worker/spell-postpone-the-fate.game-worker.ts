@@ -112,8 +112,6 @@ export class SpellPostponeTheFateGameWorker implements IGameWorker, IHasGameHook
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
-    await this.gameHookService
-      .dispatch(gameInstance, `card:lifeChanged:damaged:${cardDamaged.card.type}:${cardDamaged.card.id}`, {gameCard: cardDamaged, source: cardUsed, lifeChanged: -4});
 
     // Send message to rooms
     this.arenaRoomsService.sendMessageForGame(
@@ -164,7 +162,7 @@ export class SpellPostponeTheFateGameWorker implements IGameWorker, IHasGameHook
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'thunder') {
+      if (card.card.id === 'postpone-the-fate') {
         return index;
       }
       return null;

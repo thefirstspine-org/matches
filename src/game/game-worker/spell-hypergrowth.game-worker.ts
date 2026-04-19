@@ -181,7 +181,7 @@ export class SpellHypergrowthGameWorker implements IGameWorker, IHasGameHookServ
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'autumn') {
+      if (card.card.id === 'hypergrowth') {
         return index;
       }
       return null;

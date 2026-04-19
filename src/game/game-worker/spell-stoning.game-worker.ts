@@ -174,7 +174,7 @@ export class SpellStoningGameWorker implements IGameWorker, IHasGameHookService 
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'break-the-fate') {
+      if (card.card.id === 'stoning') {
         return index;
       }
       return null;

@@ -33,8 +33,8 @@ export class SpellBreakTheFateGameWorker implements IGameWorker, IHasGameHookSer
         fr: `Jouer un Briser le Destin`,
       },
       description: {
-        en: `Play Break the Fate on an artifact`,
-        fr: `Jouer un Briser le Destin sur un artefact`,
+        en: `Play Break the Fate on a card`,
+        fr: `Jouer un Briser le Destin sur une carte`,
       },
       user: data.user as number,
       priority: 1,

@@ -125,12 +125,13 @@ export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHa
   }
 
   /**
-   * On expiration, do not throw cards
+   * On expiration, do not throw cards.
+   * The response must match the expected interaction shape.
    * @param gameInstance
    * @param gameAction
    */
-  public async expires(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPass>): Promise<boolean> {
-    gameAction.response = [];
+  public async expires(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionMoveCardToDiscard>): Promise<boolean> {
+    gameAction.response = {handIndexes: []};
     return true;
   }
 

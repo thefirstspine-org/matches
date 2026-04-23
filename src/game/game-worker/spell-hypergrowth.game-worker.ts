@@ -137,7 +137,7 @@ export class SpellHypergrowthGameWorker implements IGameWorker, IHasGameHookServ
       gameInstance,
       {
         fr: `A joué Hypercroissance`,
-        en: `Play Hypergrowth`,
+        en: `Played Hypergrowth`,
       },
       gameAction.user);
 

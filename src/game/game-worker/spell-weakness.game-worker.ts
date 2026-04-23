@@ -121,7 +121,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       gameInstance,
       {
         fr: `A joué une Faiblesse`,
-        en: `Play Weakness`,
+        en: `Played Weakness`,
       },
       gameAction.user);
 

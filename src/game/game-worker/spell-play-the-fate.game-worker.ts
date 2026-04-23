@@ -118,7 +118,7 @@ export class SpellPlayTheFateGameWorker implements IGameWorker, IHasGameHookServ
       gameInstance,
       {
         fr: `A joué Jouer le Destin`,
-        en: `Play Play the Fate`,
+        en: `Played Play the Fate`,
       },
       gameAction.user);
 

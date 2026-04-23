@@ -118,7 +118,7 @@ export class SpellPostponeTheFateGameWorker implements IGameWorker, IHasGameHook
       gameInstance,
       {
         fr: `A joué Repousser le Destin`,
-        en: `Play Postpone the Fate`,
+        en: `Played Postpone the Fate`,
       },
       gameAction.user);
 

@@ -118,7 +118,7 @@ export class SpellAutumnGameWorker implements IGameWorker, IHasGameHookService {
       gameInstance,
       {
         fr: `A joué Automne`,
-        en: `Play Autumn`,
+        en: `Played Autumn`,
       },
       gameAction.user);
 

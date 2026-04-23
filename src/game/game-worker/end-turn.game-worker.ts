@@ -62,8 +62,8 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `Termine son tour`,
-        en: `Ends his turn`,
+        fr: `A terminé son tour`,
+        en: `Ended his turn`,
       },
       gameAction.user);
 
@@ -76,8 +76,8 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `Commence son tour`,
-        en: `Starts his turn`,
+        fr: `A commencé son tour`,
+        en: `Started his turn`,
       },
       nextUser);
 

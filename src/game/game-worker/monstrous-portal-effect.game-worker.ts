@@ -32,7 +32,7 @@ export class MonstrousPortalEffectGameWorker implements IGameWorker, IHasGameHoo
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Place a game on the board`,
+        en: `Place a card on the board`,
         fr: `Placer une carte`,
       },
       description: {
@@ -45,7 +45,7 @@ export class MonstrousPortalEffectGameWorker implements IGameWorker, IHasGameHoo
       interaction: {
         type: 'putCardOnBoard',
         description: {
-          en: `Place a card around one of yours Montrous Portal`,
+          en: `Place a card around one of your Monstrous Portals`,
           fr: `Placer une carte autour de l'un des Portails Monstrueux`,
         },
         params: {

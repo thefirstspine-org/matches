@@ -63,7 +63,7 @@ export class StartConfrontsGameWorker implements IGameWorker, IHasGameHookServic
     });
 
     // Dispatch event
-    await this.gameHookService.dispatch(gameInstance, `game:phaseChanged:confonts`);
+    await this.gameHookService.dispatch(gameInstance, `game:phaseChanged:confronts`);
 
     // Create the action confront
     const action: IGameAction<any> = await this.gameWorkerService.getWorker('confronts').create(gameInstance, {user: gameAction.user});
@@ -81,8 +81,8 @@ export class StartConfrontsGameWorker implements IGameWorker, IHasGameHookServic
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `Passe aux confrontations`,
-        en: `Pass to the confrontations`,
+        fr: `Est passé aux confrontations`,
+        en: `Passed to confrontations`,
       },
       gameAction.user);
 

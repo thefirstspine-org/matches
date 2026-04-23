@@ -161,7 +161,7 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     if (!this.initialized) {
       this.init();
     }
-    return this.injectables.find((w: IGameWorker) => w.type === type);
+    return this.injectables.find((w: IGameWorker) => w.type === type)!;
   }
 
 }

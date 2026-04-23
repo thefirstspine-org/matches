@@ -11,7 +11,7 @@ import { LogsService } from '@thefirstspine/logs-nest';
  * Terminate the turn of the user.
  */
 @Injectable() // Injectable required here for dependency injection
-export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHasGameWorkerService, IHasGameHookService {
+export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHasGameWorkerService {
 
   public gameHookService: GameHookService;
   public gameWorkerService: GameWorkerService;

@@ -12,7 +12,7 @@ import { ICard } from '@thefirstspine/types-game';
  * Terminate the turn of the user.
  */
 @Injectable() // Injectable required here for dependency injection
-export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHasGameWorkerService, IHasGameHookService {
+export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHasGameWorkerService {
 
   public gameHookService: GameHookService;
   public gameWorkerService: GameWorkerService;
@@ -142,7 +142,7 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
     const promisesEffects: Array<Promise<any>> = [];
     gameInstance.cards.forEach((c: IGameCard) => {
       // Damages the cards of the next player on lava squares
-      const square: IGameCard|undefined = squares.find((s: IGameCard) => c.coords && s.coords.x === c.coords.x && s.coords.y === s.coords.y);
+      const square: IGameCard|undefined = squares.find((s: IGameCard) => c.coords && s.coords.x === c.coords.x && s.coords.y === c.coords.y);
       if (square && square.card.id === 'lava' && c.user === nextUser && c.card.type !== 'square') {
         c.currentStats.life --;
         promisesEffects.push(

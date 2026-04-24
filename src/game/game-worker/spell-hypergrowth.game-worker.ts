@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "weakness" spell.
+ * Worker for "hypergrowth" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellHypergrowthGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-weakness';
+  readonly type: string = 'spell-hypergrowth';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Weakness`,
-        fr: `Jouer une Faiblesse`,
+        en: `Play Hypergrowth`,
+        fr: `Jouer Hypercroissance`,
       },
       description: {
-        en: `Play Weakness on a card`,
-        fr: `Jouer une Faiblesse sur une carte`,
+        en: `Play Hypergrowth on a card`,
+        fr: `Jouer Hypercroissance sur une carte`,
       },
       user: data.user as number,
       priority: 1,
@@ -108,10 +108,26 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.top.strength >= 2 ? cardDamaged.currentStats.top.strength -= 2 : cardDamaged.currentStats.top.strength = 0;
-    cardDamaged.currentStats.right.strength >= 2 ? cardDamaged.currentStats.right.strength -= 2 : cardDamaged.currentStats.right.strength = 0;
-    cardDamaged.currentStats.bottom.strength >= 2 ? cardDamaged.currentStats.bottom.strength -= 2 : cardDamaged.currentStats.bottom.strength = 0;
-    cardDamaged.currentStats.left.strength >= 2 ? cardDamaged.currentStats.left.strength -= 2 : cardDamaged.currentStats.left.strength = 0;
+
+    // Trigger once
+    cardDamaged.metadata = cardDamaged.metadata ? cardDamaged.metadata : {};
+    cardDamaged.metadata.growBonus = cardDamaged.metadata.growBonus ? cardDamaged.metadata.growBonus + 1 : 1;
+    if (cardDamaged.metadata.growBonus <= 5) {
+      cardDamaged.currentStats.bottom.strength += 2;
+      cardDamaged.currentStats.left.strength += 2;
+      cardDamaged.currentStats.right.strength += 2;
+      cardDamaged.currentStats.top.strength += 2;
+    }
+
+    // Trigger twice
+    cardDamaged.metadata = cardDamaged.metadata ? cardDamaged.metadata : {};
+    cardDamaged.metadata.growBonus = cardDamaged.metadata.growBonus ? cardDamaged.metadata.growBonus + 1 : 1;
+    if (cardDamaged.metadata.growBonus <= 5) {
+      cardDamaged.currentStats.bottom.strength += 2;
+      cardDamaged.currentStats.left.strength += 2;
+      cardDamaged.currentStats.right.strength += 2;
+      cardDamaged.currentStats.top.strength += 2;
+    }
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
@@ -120,8 +136,8 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Faiblesse`,
-        en: `Played Weakness`,
+        fr: `A joué Hypercroissance`,
+        en: `Played Hypergrowth`,
       },
       gameAction.user);
 
@@ -165,7 +181,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'weakness') {
+      if (card.card.id === 'hypergrowth') {
         return index;
       }
       return null;
@@ -180,7 +196,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
     return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords && !card.currentStats.effects?.includes('shadow'))
+      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords && !card.currentStats.effects?.includes('shadow') && card.currentStats?.capacities?.includes('grow'))
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

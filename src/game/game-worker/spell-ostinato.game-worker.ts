@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "weakness" spell.
+ * Worker for "ostinato" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellOstinatoGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-weakness';
+  readonly type: string = 'spell-ostinato';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Weakness`,
-        fr: `Jouer une Faiblesse`,
+        en: `Play Ostinato`,
+        fr: `Jouer Ostinato`,
       },
       description: {
-        en: `Play Weakness on a card`,
-        fr: `Jouer une Faiblesse sur une carte`,
+        en: `Play Ostinato on a card`,
+        fr: `Jouer Ostinato sur une carte`,
       },
       user: data.user as number,
       priority: 1,
@@ -101,17 +101,16 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     }
     cardUsed.location = 'discard';
 
-    // Damage the card
-    const cardDamaged: IGameCard|undefined = gameInstance.cards
+    // Add capacity & strength to the card
+    const cardTarget: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
-    if (!cardDamaged) {
+    if (!cardTarget) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.top.strength >= 2 ? cardDamaged.currentStats.top.strength -= 2 : cardDamaged.currentStats.top.strength = 0;
-    cardDamaged.currentStats.right.strength >= 2 ? cardDamaged.currentStats.right.strength -= 2 : cardDamaged.currentStats.right.strength = 0;
-    cardDamaged.currentStats.bottom.strength >= 2 ? cardDamaged.currentStats.bottom.strength -= 2 : cardDamaged.currentStats.bottom.strength = 0;
-    cardDamaged.currentStats.left.strength >= 2 ? cardDamaged.currentStats.left.strength -= 2 : cardDamaged.currentStats.left.strength = 0;
+    cardTarget.currentStats.capacities = cardTarget.currentStats.capacities ?
+      [...cardTarget.currentStats.capacities, 'requiem'] :
+      ['requiem'];
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
@@ -120,8 +119,8 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Faiblesse`,
-        en: `Played Weakness`,
+        fr: `A joué Ostinato`,
+        en: `Played Ostinato`,
       },
       gameAction.user);
 
@@ -165,7 +164,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'weakness') {
+      if (card.card.id === 'ostinato') {
         return index;
       }
       return null;

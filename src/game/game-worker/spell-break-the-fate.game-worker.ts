@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "weakness" spell.
+ * Game worker for "break-the-fate" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellBreakTheFateGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-weakness';
+  readonly type: string = 'spell-break-the-fate';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Weakness`,
-        fr: `Jouer une Faiblesse`,
+        en: `Play Break the Fate`,
+        fr: `Jouer un Briser le Destin`,
       },
       description: {
-        en: `Play Weakness on a card`,
-        fr: `Jouer une Faiblesse sur une carte`,
+        en: `Play Break the Fate on a card`,
+        fr: `Jouer un Briser le Destin sur une carte`,
       },
       user: data.user as number,
       priority: 1,
@@ -101,17 +101,17 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     }
     cardUsed.location = 'discard';
 
-    // Damage the card
+    // Remove 4 HP for each card with treason on the board
     const cardDamaged: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
     if (!cardDamaged) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.top.strength >= 2 ? cardDamaged.currentStats.top.strength -= 2 : cardDamaged.currentStats.top.strength = 0;
-    cardDamaged.currentStats.right.strength >= 2 ? cardDamaged.currentStats.right.strength -= 2 : cardDamaged.currentStats.right.strength = 0;
-    cardDamaged.currentStats.bottom.strength >= 2 ? cardDamaged.currentStats.bottom.strength -= 2 : cardDamaged.currentStats.bottom.strength = 0;
-    cardDamaged.currentStats.left.strength >= 2 ? cardDamaged.currentStats.left.strength -= 2 : cardDamaged.currentStats.left.strength = 0;
+    const hpToRemove: number = gameInstance.cards
+      .filter((c: IGameCard) => c.location == 'board' && c.coords && c.currentStats?.capacities?.includes('treason'))
+      .length * 4;
+    cardDamaged.currentStats.life -= hpToRemove;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
@@ -120,8 +120,8 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Faiblesse`,
-        en: `Played Weakness`,
+        fr: `A joué un Briser le Destin`,
+        en: `Played Break the Fate`,
       },
       gameAction.user);
 
@@ -165,7 +165,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'weakness') {
+      if (card.card.id === 'break-the-fate') {
         return index;
       }
       return null;
@@ -179,8 +179,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
    */
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
-    return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords && !card.currentStats.effects?.includes('shadow'))
+    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && (card.card.type === 'artifact' || card.card.type === 'creature') && card.coords && !card.currentStats.effects?.includes('shadow'))
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

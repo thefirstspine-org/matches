@@ -197,8 +197,8 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `Joue une confrontation`,
-        en: `Play a confrontation`,
+        fr: `A joué une confrontation`,
+        en: `Played a confrontation`,
       },
       gameAction.user);
 

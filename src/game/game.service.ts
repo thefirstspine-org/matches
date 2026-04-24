@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { shuffle } from '../utils/array.utils';
 import { randBetween } from '../utils/maths.utils';
 import { IGameInstance, IGameUser, IGameCard, IGameAction, IGameInteraction } from '@thefirstspine/types-matches';
-import { GameAssetsService } from '../game-assets/game-assets.service';
 import { cardLocation, ICard } from '@thefirstspine/types-game';
-import { IGameType, IDeck } from '@thefirstspine/types-game';
 import { ArenaRoomsService } from '../rooms/arena-rooms.service';
 import { GameWorkerService } from './game-worker/game-worker.service';
 import { GameHookService } from './game-hook/game-hook.service';
@@ -162,7 +160,11 @@ export class GameService {
   }
 
   async saveGameInstance(gameInstance: IGameInstance): Promise<IGameInstance> {
-    await this.gameInstanceModel.updateOne({id: gameInstance.id}, gameInstance);
+    try {
+      await this.gameInstanceModel.updateOne({id: gameInstance.id}, gameInstance);
+    } catch (e) {
+      this.logsService.error('Error while saving game instance', {name: e.name, message: e.message, stack: e.stack});
+    }
     this.gameInstances[gameInstance.id] = gameInstance;
     return this.getGameInstance(gameInstance.id);
   }

@@ -28,6 +28,9 @@ import { SpellEtherGameWorker } from './spell-ether.game-worker';
 import { SpellFireGameWorker } from './spell-fire.game-worker';
 import { SpellAchieveGameWorker } from './spell-achieve.game-worker';
 import { SpellCureGameWorker } from './spell-cure.game-worker';
+import { SpellDaCapoGameWorker } from './spell-da-capo.game-worker';
+import { SpellAccelerandoGameWorker } from './spell-accelerando.game-worker';
+import { SpellCrescendoGameWorker } from './spell-crescendo.game-worker';
 import { SpellTheVoidGameWorker } from './spell-the-void.game-worker';
 import { SpellPainGameWorker } from './spell-pain.game-worker';
 import { LogsService } from '@thefirstspine/logs-nest';
@@ -45,7 +48,14 @@ import { SpellOvilHealGameWorker } from './spell-ovil-heal.game-worker';
 import { SpellOvilReconstructGameWorker } from './spell-ovil-reconstruct.game-worker';
 import { MulliganGameWorker } from './mulligan.game-worker';
 import { SpellEnchantmentGameWorker } from './spell-enchantment.game-worker';
-import { SpellRageTheFateGameWorker } from './rage-the-fate.game-worker';
+import { SpellRageTheFateGameWorker } from './spell-rage-the-fate.game-worker';
+import { SpellBreakTheFateGameWorker } from './spell-break-the-fate.game-worker';
+import { SpellPlayTheFateGameWorker } from './spell-play-the-fate.game-worker';
+import { SpellPostponeTheFateGameWorker } from './spell-postpone-the-fate.game-worker';
+import { SpellAutumnGameWorker } from './spell-autumn.game-worker';
+import { SpellHypergrowthGameWorker } from './spell-hypergrowth.game-worker';
+import { SpellStoningGameWorker } from './spell-stoning.game-worker';
+import { SpellOstinatoGameWorker } from './spell-ostinato.game-worker';
 
 /**
  * Main service that manages game workers. Each game worker is responsible of a game action type. This service
@@ -82,33 +92,45 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
 
     // Create workers
     const injectedProps = {gameWorkerService: this, gameHookService: this.gameHookService};
-    this.createInjectable(ConfrontsGameWorker, injectedProps);
+    
+    // Workers for phases
+    this.createInjectable(MulliganGameWorker, injectedProps);
+    this.createInjectable(ThrowCardsGameWorker, injectedProps);
     this.createInjectable(MoveCreatureGameWorker, injectedProps);
     this.createInjectable(PlaceCardGameWorker, injectedProps);
+    this.createInjectable(StartConfrontsGameWorker, injectedProps);
+    this.createInjectable(ConfrontsGameWorker, injectedProps);
+    this.createInjectable(EndTurnGameWorker, injectedProps);
+
+    // Workers for spells
     this.createInjectable(SpellHealGameWorker, injectedProps);
     this.createInjectable(SpellPutrefactionGameWorker, injectedProps);
     this.createInjectable(SpellReconstructGameWorker, injectedProps);
     this.createInjectable(SpellRuinGameWorker, injectedProps);
     this.createInjectable(SpellThunderGameWorker, injectedProps);
-    this.createInjectable(StartConfrontsGameWorker, injectedProps);
-    this.createInjectable(ThrowCardsGameWorker, injectedProps);
-    this.createInjectable(RunGameWorker, injectedProps);
-    this.createInjectable(SkipRunGameWorker, injectedProps);
     this.createInjectable(SpellReplacementGameWorker, injectedProps);
-    this.createInjectable(ReplaceCardGameWorker, injectedProps);
-    this.createInjectable(InsanesRunEffectGameWorker, injectedProps);
-    this.createInjectable(MonstrousPortalEffectGameWorker, injectedProps);
-    this.createInjectable(EndTurnGameWorker, injectedProps);
-    this.createInjectable(VolkaEffectGameWorker, injectedProps);
     this.createInjectable(SpellAlterTheFateGameWorker, injectedProps);
     this.createInjectable(SpellEtherGameWorker, injectedProps);
     this.createInjectable(SpellFireGameWorker, injectedProps);
     this.createInjectable(SpellAchieveGameWorker, injectedProps);
     this.createInjectable(SpellCureGameWorker, injectedProps);
+    this.createInjectable(SpellDaCapoGameWorker, injectedProps);
+    this.createInjectable(SpellAccelerandoGameWorker, injectedProps);
+    this.createInjectable(SpellCrescendoGameWorker, injectedProps);
     this.createInjectable(SpellTheVoidGameWorker, injectedProps);
     this.createInjectable(SpellPainGameWorker, injectedProps);
     this.createInjectable(SpellReinforcementGameWorker, injectedProps);
     this.createInjectable(SpellBloodStrengthGameWorker, injectedProps);
+
+    // Workers for effects
+    this.createInjectable(RunGameWorker, injectedProps);
+    this.createInjectable(SkipRunGameWorker, injectedProps);
+    this.createInjectable(ReplaceCardGameWorker, injectedProps);
+    this.createInjectable(InsanesRunEffectGameWorker, injectedProps);
+    this.createInjectable(MonstrousPortalEffectGameWorker, injectedProps);
+    this.createInjectable(VolkaEffectGameWorker, injectedProps);
+
+    // Workers for Arena
     this.createInjectable(SpellInsaneRuinGameWorker, injectedProps);
     this.createInjectable(SpellInsanePutrefactionGameWorker, injectedProps);
     this.createInjectable(SpellInsaneHealGameWorker, injectedProps);
@@ -119,9 +141,15 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     this.createInjectable(SpellOvilPutrefactionGameWorker, injectedProps);
     this.createInjectable(SpellOvilHealGameWorker, injectedProps);
     this.createInjectable(SpellOvilReconstructGameWorker, injectedProps);
-    this.createInjectable(MulliganGameWorker, injectedProps);
     this.createInjectable(SpellEnchantmentGameWorker, injectedProps);
     this.createInjectable(SpellRageTheFateGameWorker, injectedProps);
+    this.createInjectable(SpellBreakTheFateGameWorker, injectedProps);
+    this.createInjectable(SpellPlayTheFateGameWorker, injectedProps);
+    this.createInjectable(SpellPostponeTheFateGameWorker, injectedProps);
+    this.createInjectable(SpellAutumnGameWorker, injectedProps);
+    this.createInjectable(SpellHypergrowthGameWorker, injectedProps);
+    this.createInjectable(SpellStoningGameWorker, injectedProps);
+    this.createInjectable(SpellOstinatoGameWorker, injectedProps);
   }
 
   /**
@@ -133,7 +161,7 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     if (!this.initialized) {
       this.init();
     }
-    return this.injectables.find((w: IGameWorker) => w.type === type);
+    return this.injectables.find((w: IGameWorker) => w.type === type)!;
   }
 
 }

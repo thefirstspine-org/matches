@@ -7,14 +7,14 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "weakness" spell.
+ * Worker for "Postpone the Fate" spell.
  */
 @Injectable() // Injectable required here for dependency injection
-export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService {
+export class SpellPostponeTheFateGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
 
-  readonly type: string = 'spell-weakness';
+  readonly type: string = 'spell-postpone-the-fate';
 
   constructor(
     private readonly logsService: LogsService,
@@ -29,12 +29,12 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Weakness`,
-        fr: `Jouer une Faiblesse`,
+        en: `Play Postpone the Fate`,
+        fr: `Jouer Repousser le Destin`,
       },
       description: {
-        en: `Play Weakness on a card`,
-        fr: `Jouer une Faiblesse sur une carte`,
+        en: `Play Postpone the Fate on a card`,
+        fr: `Jouer Repousser le Destin sur une carte`,
       },
       user: data.user as number,
       priority: 1,
@@ -101,17 +101,14 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     }
     cardUsed.location = 'discard';
 
-    // Damage the card
+    // Heals the card completely
     const cardDamaged: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
     if (!cardDamaged) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.top.strength >= 2 ? cardDamaged.currentStats.top.strength -= 2 : cardDamaged.currentStats.top.strength = 0;
-    cardDamaged.currentStats.right.strength >= 2 ? cardDamaged.currentStats.right.strength -= 2 : cardDamaged.currentStats.right.strength = 0;
-    cardDamaged.currentStats.bottom.strength >= 2 ? cardDamaged.currentStats.bottom.strength -= 2 : cardDamaged.currentStats.bottom.strength = 0;
-    cardDamaged.currentStats.left.strength >= 2 ? cardDamaged.currentStats.left.strength -= 2 : cardDamaged.currentStats.left.strength = 0;
+    cardDamaged.currentStats.life = cardDamaged.card.stats.life;
 
     // Dispatch event
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
@@ -120,8 +117,8 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Faiblesse`,
-        en: `Played Weakness`,
+        fr: `A joué Repousser le Destin`,
+        en: `Played Postpone the Fate`,
       },
       gameAction.user);
 
@@ -165,7 +162,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'weakness') {
+      if (card.card.id === 'postpone-the-fate') {
         return index;
       }
       return null;
@@ -180,7 +177,7 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
     // Get the coordinates where the user can place a card
     return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords && !card.currentStats.effects?.includes('shadow'))
+      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords && !card.currentStats.effects?.includes('shadow') && card.currentStats?.capacities?.includes('treason'))
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

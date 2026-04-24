@@ -131,8 +131,8 @@ export class ThrowCardsGameWorker implements IGameWorker, IHasGameHookService {
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `Défausse ${numCards} carte${(numCards > 1 ? 's' : '')}`,
-        en: `Discard ${numCards} card${(numCards > 1 ? 's' : '')}`,
+        fr: `A défaussé ${numCards} carte${(numCards > 1 ? 's' : '')}`,
+        en: `Discarded ${numCards} card${(numCards > 1 ? 's' : '')}`,
       },
       gameAction.user);
 

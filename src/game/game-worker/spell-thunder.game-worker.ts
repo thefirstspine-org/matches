@@ -120,7 +120,7 @@ export class SpellThunderGameWorker implements IGameWorker, IHasGameHookService 
       gameInstance,
       {
         fr: `A joué une Foudre`,
-        en: `Play Thunder`,
+        en: `Played Thunder`,
       },
       gameAction.user);
 

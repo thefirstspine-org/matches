@@ -7,34 +7,31 @@ import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
 
 /**
- * Worker for "weakness" spell.
+ * Worker for "da-capo" spell.
  */
-@Injectable() // Injectable required here for dependency injection
-export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService {
+@Injectable()
+export class SpellDaCapoGameWorker implements IGameWorker, IHasGameHookService {
 
   public gameHookService: GameHookService;
-
-  readonly type: string = 'spell-weakness';
 
   constructor(
     private readonly logsService: LogsService,
     private readonly arenaRoomsService: ArenaRoomsService,
   ) {}
 
-  /**
-   * @inheritdoc
-   */
+  readonly type: string = 'spell-da-capo';
+
   public async create(gameInstance: IGameInstance, data: {user: number}): Promise<IGameAction<IInteractionPutCardOnBoard>> {
     return {
       createdAt: Date.now(),
       type: this.type,
       name: {
-        en: `Play Weakness`,
-        fr: `Jouer une Faiblesse`,
+        en: `Play Da Capo`,
+        fr: `Jouer Da Capo`,
       },
       description: {
-        en: `Play Weakness on a card`,
-        fr: `Jouer une Faiblesse sur une carte`,
+        en: `Play Da Capo to reset`,
+        fr: `Jouer Da Capo pour`,
       },
       user: data.user as number,
       priority: 1,
@@ -52,19 +49,12 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     };
   }
 
-  /**
-   * @inheritdoc
-   */
   public async refresh(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPutCardOnBoard>): Promise<void> {
     gameAction.interaction.params.handIndexes = this.getHandIndexes(gameInstance, gameAction.user);
     gameAction.interaction.params.boardCoords = this.getBoardCoords(gameInstance, gameAction.user);
   }
 
-  /**
-   * @inheritdoc
-   */
   public async execute(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPutCardOnBoard>): Promise<boolean> {
-    // Validate response form
     if (
       gameAction.response.handIndex === undefined ||
       gameAction.response.boardCoords === undefined
@@ -73,7 +63,6 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       return false;
     }
 
-    // Validate response inputs
     const allowedHandIndexes: number[] = gameAction.interaction.params.handIndexes;
     const allowedCoordsOnBoard: string[] = gameAction.interaction.params.boardCoords;
     const responseHandIndex: number = gameAction.response.handIndex;
@@ -87,11 +76,9 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
       return false;
     }
 
-    // Transform coords
     const x: number = parseInt(responseBoardCoords.split('-')[0], 10);
     const y: number = parseInt(responseBoardCoords.split('-')[1], 10);
 
-    // Discard the spell
     const cardUsed: IGameCard|undefined = gameInstance.cards
       .filter((c: IGameCard) => c.location === 'hand' && c.user === gameAction.user)
       .find((c: IGameCard, index: number) => index === responseHandIndex);
@@ -101,47 +88,37 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     }
     cardUsed.location = 'discard';
 
-    // Damage the card
     const cardDamaged: IGameCard|undefined = gameInstance.cards
       .find((c: IGameCard) => c.location === 'board' && c.coords && c.coords.x === x && c.coords.y === y);
     if (!cardDamaged) {
       this.logsService.warning('Target not found', gameAction);
       return false;
     }
-    cardDamaged.currentStats.top.strength >= 2 ? cardDamaged.currentStats.top.strength -= 2 : cardDamaged.currentStats.top.strength = 0;
-    cardDamaged.currentStats.right.strength >= 2 ? cardDamaged.currentStats.right.strength -= 2 : cardDamaged.currentStats.right.strength = 0;
-    cardDamaged.currentStats.bottom.strength >= 2 ? cardDamaged.currentStats.bottom.strength -= 2 : cardDamaged.currentStats.bottom.strength = 0;
-    cardDamaged.currentStats.left.strength >= 2 ? cardDamaged.currentStats.left.strength -= 2 : cardDamaged.currentStats.left.strength = 0;
 
-    // Dispatch event
+    gameInstance.cards.forEach((card: IGameCard) => {
+      if (card.currentStats?.capacities?.includes('requiem')) {
+        card.metadata = card.metadata ? card.metadata : {};
+        card.metadata.requiemTurns = 5;
+      }
+    });
+
     await this.gameHookService.dispatch(gameInstance, `card:spell:used:${cardUsed.card.id}`, {gameCard: cardUsed});
 
-    // Send message to rooms
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `A joué une Faiblesse`,
-        en: `Played Weakness`,
+        fr: `A joué Da Capo`,
+        en: `Played Da Capo`,
       },
       gameAction.user);
 
     return true;
   }
 
-  /**
-   * Default expires method
-   * @param gameInstance
-   * @param gameAction
-   */
   public async expires(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPutCardOnBoard>): Promise<boolean> {
     return true;
   }
 
-  /**
-   * Default delete method
-   * @param gameInstance
-   * @param gameAction
-   */
   public async delete(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPutCardOnBoard>): Promise<void> {
     gameInstance.actions.current = gameInstance.actions.current.filter((gameActionRef: IGameAction<any>) => {
       if (gameActionRef === gameAction) {
@@ -155,32 +132,19 @@ export class SpellWeaknessGameWorker implements IGameWorker, IHasGameHookService
     });
   }
 
-  /**
-   * Get the hand indexes of the spell
-   * @param gameInstance
-   * @param user
-   */
   protected getHandIndexes(gameInstance: IGameInstance, user: number): number[] {
-    // Get the hand indexes of the creatures & artifacts
     return gameInstance.cards.filter((card: IGameCard) => {
       return card.user === user && card.location === 'hand';
     }).map((card: IGameCard, index: number) => {
-      if (card.card.id === 'weakness') {
+      if (card.card.id === 'da-capo') {
         return index;
       }
       return null;
     }).filter((i: number) => i !== null);
   }
 
-  /**
-   * Get the board coordinates where the spell can be played
-   * @param gameInstance
-   * @param user
-   */
   protected getBoardCoords(gameInstance: IGameInstance, user: number): string[] {
-    // Get the coordinates where the user can place a card
-    return gameInstance.cards
-      .filter((card: IGameCard) => card.location === 'board' && ['creature', 'artifact'].includes(card.card.type) && card.coords && !card.currentStats.effects?.includes('shadow'))
+    return gameInstance.cards.filter((card: IGameCard) => card.location === 'board' && card.card.type === 'player' && card.user === user && !card.currentStats.effects?.includes('shadow'))
       .map((card: IGameCard) => `${card.coords.x}-${card.coords.y}`);
   }
 }

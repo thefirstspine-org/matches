@@ -121,7 +121,7 @@ export class SpellBreakGameWorker implements IGameWorker, IHasGameHookService {
       gameInstance,
       {
         fr: `A joué une Cassure`,
-        en: `Play Break`,
+        en: `Played Break`,
       },
       gameAction.user);
 

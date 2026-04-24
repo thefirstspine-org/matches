@@ -11,7 +11,7 @@ import { LogsService } from '@thefirstspine/logs-nest';
  * Terminate the turn of the user.
  */
 @Injectable() // Injectable required here for dependency injection
-export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHasGameWorkerService, IHasGameHookService {
+export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHasGameWorkerService {
 
   public gameHookService: GameHookService;
   public gameWorkerService: GameWorkerService;
@@ -107,8 +107,8 @@ export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHa
     this.arenaRoomsService.sendMessageForGame(
       gameInstance,
       {
-        fr: `Défausse ${numCards} carte${(numCards > 1 ? 's' : '')}`,
-        en: `Discard ${numCards} card${(numCards > 1 ? 's' : '')}`,
+        fr: `A défaussé ${numCards} carte${(numCards > 1 ? 's' : '')}`,
+        en: `Discarded ${numCards} card${(numCards > 1 ? 's' : '')}`,
       },
       gameAction.user);
 
@@ -125,12 +125,13 @@ export class MulliganGameWorker implements IGameWorker, IHasGameHookService, IHa
   }
 
   /**
-   * On expiration, do not throw cards
+   * On expiration, do not throw cards.
+   * The response must match the expected interaction shape.
    * @param gameInstance
    * @param gameAction
    */
-  public async expires(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionPass>): Promise<boolean> {
-    gameAction.response = [];
+  public async expires(gameInstance: IGameInstance, gameAction: IGameAction<IInteractionMoveCardToDiscard>): Promise<boolean> {
+    gameAction.response = {handIndexes: []};
     return true;
   }
 

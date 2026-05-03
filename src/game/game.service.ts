@@ -25,7 +25,7 @@ export class GameService {
    * All the game instance stored in the hot memory. A game is in the hot memory
    * when it is considered as 'opened' by the system.
    */
-  private gameInstances: {[id: number]: IGameInstance};
+  private gameInstances: Map<number, IGameInstance>;
 
   constructor(
     private readonly messagingService: MessagingService,
@@ -35,6 +35,7 @@ export class GameService {
     private readonly gameHookService: GameHookService,
     @InjectModel(GameInstance.name) private gameInstanceModel: Model<GameInstanceDocument>,
   ) {
+    this.gameInstances = new Map<number, IGameInstance>();
     this.loadPendingGameInstances();
   }
 
@@ -54,7 +55,7 @@ export class GameService {
     const gameInstanceId = Date.now();
 
     // Throws an error when max concurrent games is reached
-    if (Object.keys(this.gameInstances).length >= GameService.MAX_CONCURRENT_GAMES) {
+    if (this.gameInstances.size >= GameService.MAX_CONCURRENT_GAMES) {
       throw new Error('Reached max concurrent games.');
     }
 
@@ -112,9 +113,10 @@ export class GameService {
       .create(gameInstance, {user: gameUsers[0].user});
     gameInstance.actions.current.push(action);
 
-    // Save it
+    // Mark as modified and save it
+    (gameInstance as any)._lastModified = Date.now();
     await this.gameInstanceModel.create(gameInstance);
-    this.gameInstances[gameInstanceId] = gameInstance;
+    this.gameInstances.set(gameInstanceId, gameInstance);
 
     // Dispatch event with the created instance
     await this.gameHookService.dispatch(gameInstance, `game:created:standard:${gameInstance.id}`, {gameInstance});
@@ -134,13 +136,12 @@ export class GameService {
    * @param user
    */
   isUserPlaying(user: number): boolean {
-    return Object.keys(this.gameInstances).filter(
-      (g) => {
-        return this.gameInstances[g].users &&
-          this.gameInstances[g].status === 'active' &&
-          this.gameInstances[g].users.filter((u) => u.user === user).length > 0;
-      },
-    ).length > 0;
+    for (const gameInstance of this.gameInstances.values()) {
+      if (gameInstance.gameUsers && gameInstance.status === 'active' && gameInstance.gameUsers.some(u => u.user === user)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -149,7 +150,7 @@ export class GameService {
    */
   async getGameInstance(id: number): Promise<IGameInstance|null> {
     // Get instance in hot memory
-    const game: IGameInstance|null = this.gameInstances[id] ? this.gameInstances[id] : null;
+    const game: IGameInstance|null = this.gameInstances.get(id) || null;
     if (game) {
       return game;
     }
@@ -165,7 +166,9 @@ export class GameService {
     } catch (e) {
       this.logsService.error('Error while saving game instance', {name: e.name, message: e.message, stack: e.stack});
     }
-    this.gameInstances[gameInstance.id] = gameInstance;
+    // Update in-memory map and mark last modified
+    (gameInstance as any)._lastModified = Date.now();
+    this.gameInstances.set(gameInstance.id, gameInstance);
     return this.getGameInstance(gameInstance.id);
   }
 
@@ -173,11 +176,7 @@ export class GameService {
    * Get all game instances in hot memory
    */
   getGameInstances(): IGameInstance[] {
-    return Object.keys(this.gameInstances).map(
-      (gameInstanceId: string) => {
-        return this.gameInstances[gameInstanceId];
-      },
-    );
+    return Array.from(this.gameInstances.values());
   }
 
   /**
@@ -188,19 +187,17 @@ export class GameService {
     // Ensure that the instance is written on the disk
     await this.saveGameInstance(gameInstance);
     // Deletes the instance from memory
-    if (this.gameInstances[gameInstance.id]) {
-      delete this.gameInstances[gameInstance.id];
-    }
+    this.gameInstances.delete(gameInstance.id);
   }
 
   async loadPendingGameInstances() {
     // Get the current game instances at launch
     const realm: string|undefined = process.env.REALM;
     const instances: IGameInstance[] = await this.gameInstanceModel.find({status: 'active', realm}).exec();
-    this.gameInstances = instances.reduce((acc: {[id: number]: IGameInstance}, instance: IGameInstance) => {
-      acc[instance.id] = instance;
+    this.gameInstances = instances.reduce((acc: Map<number, IGameInstance>, instance: IGameInstance) => {
+      acc.set(instance.id, instance);
       return acc;
-    }, {});
+    }, new Map<number, IGameInstance>());
     if (process.env.PURGE_GAMES_AT_STARTUP === "true") {
       instances.forEach((i) => {
         i.status = "closed";
@@ -265,8 +262,8 @@ export class GameService {
       return;
     }
 
-    // Calculate the JSON hash of the game instance
-    const jsonHash: string = JSON.stringify(gameInstance);
+    // Snapshot last modified timestamp before processing to avoid expensive deep-comparisons
+    const lastModifiedBefore: number = (gameInstance as any)._lastModified || 0;
 
     // Get the max priority of the pending actions
     const maxPriority = gameInstance.actions.current.reduce((acc: number, action: IGameAction<IGameInteraction>) => {
@@ -302,6 +299,8 @@ export class GameService {
           // Something's wrong, delete the response
           this.logsService.error('Cannot execute game action', { gameAction: pendingGameAction });
           pendingGameAction.response = undefined;
+          // mark as modified so this change is noticed by the ticker
+          (gameInstance as any)._lastModified = Date.now();
         }
       } catch (e) {
         // tslint:disable-next-line:no-console
@@ -333,8 +332,8 @@ export class GameService {
     });
     await Promise.all(refreshPromises);
 
-    // Exit method when no changes
-    if (JSON.stringify(gameInstance) === jsonHash) {
+    // Exit method when no changes (use lastModified marker to avoid costly deep-compare)
+    if ((gameInstance as any)._lastModified === lastModifiedBefore) {
       // this.logsService.info('No changes in the game instance.', { gameAction: pendingGameAction });
       return;
     }

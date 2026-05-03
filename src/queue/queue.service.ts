@@ -24,6 +24,11 @@ export class QueueService {
   private queueInstances: IQueueInstance[] = [];
 
   /**
+   * Fast lookup of users present in any queue (to avoid O(n*m) scans)
+   */
+  private usersInQueues: Set<number> = new Set();
+
+  /**
    * Construtor. Initialize the queue property.
    */
   constructor(
@@ -121,6 +126,9 @@ export class QueueService {
       queueExpiresAt: Date.now() + (QueueService.QUEUE__EXPIRATION_TIME * 1000),
     });
 
+    // Maintain fast membership set
+    this.usersInQueues.add(user);
+
     // Send message
     this.messagingService.sendMessage(
       '*',
@@ -184,6 +192,13 @@ export class QueueService {
 
     // Remove the user from the queue
     queue.queueUsers = queue.queueUsers.filter(u => u.user !== user);
+
+    // Recalculate membership for this user: remove from set if not present anywhere
+    const stillInAny = this.queueInstances.some(q => q.queueUsers.find(u => u.user === user));
+    if (!stillInAny) {
+      this.usersInQueues.delete(user);
+    }
+
     return queue;
   }
 
@@ -262,6 +277,11 @@ export class QueueService {
       }
       return true;
     });
+
+    // Rebuild membership set for fast lookup (keeps consistency when multiple expirations happen)
+    const users = new Set<number>();
+    this.queueInstances.forEach((q) => q.queueUsers.forEach((u) => users.add(u.user)));
+    this.usersInQueues = users;
   }
 
   /**
@@ -287,9 +307,7 @@ export class QueueService {
    * @param user
    */
   isUserInAllQueues(user: number): boolean {
-    return this.queueInstances.reduce((acc: boolean, queueInstance: IQueueInstance) => {
-      return acc || this.isUserInQueue(queueInstance.key, user);
-    }, false);
+    return this.usersInQueues.has(user);
   }
 
 }

@@ -50,6 +50,7 @@ export class ApiService {
       request.params.expirationTimeModifier ? request.params.expirationTimeModifier : 1,
       request.params.cards ? request.params.cards : [],
       request.params.coords ? request.params.coords : [{x: 3, y: 0}, {x: 3, y: 6}],
+      request.params.instantMatchmaking ? request.params.instantMatchmaking : false,
     );
 
     // Return response

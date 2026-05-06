@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { GameService } from '../game/game.service';
 import { IGameUser, IGameInstance, IQueueInstance, IGameCard } from '@thefirstspine/types-matches';
-import { ICard, IGameType } from '@thefirstspine/types-game';
-import { GameAssetsService } from '../game-assets/game-assets.service';
+import { ICard } from '@thefirstspine/types-game';
 import { MessagingService } from '@thefirstspine/messaging-nest';
 import { IQueueUser } from '@thefirstspine/types-matches/lib/queue-user.interface';
-import { queue } from 'rxjs';
 
 /**
  * Service to manage the game queue
@@ -43,6 +41,7 @@ export class QueueService {
         createdAt: Date.now(),
         cards: [],
         coords: [{x: 3, y: 0}, {x: 3, y: 6}],
+        instantMatchmaking: false,
       },
     );
   }
@@ -57,6 +56,7 @@ export class QueueService {
     expirationTimeModifier: number,
     cards: IGameCard[],
     coords: {x: number, y: number}[],
+    instantMatchmaking: boolean,
   ): Promise<IQueueInstance> {
     const instance: IQueueInstance = {
       key,
@@ -66,13 +66,14 @@ export class QueueService {
       expiresAt: Date.now() + (60 * 30 * 1000),
       cards,
       coords,
+      instantMatchmaking,
     };
 
     this.queueInstances.push(instance);
 
     this.messagingService.sendMessage(
       '*',
-      'TheFirstSpine:queue:expired',
+      'TheFirstSpine:queue:created',
       instance,
     );
 
@@ -128,6 +129,10 @@ export class QueueService {
 
     // Maintain fast membership set
     this.usersInQueues.add(user);
+
+    if (queue.instantMatchmaking && queue.queueUsers.length >= 2) {
+      await this.processMatchmakingFor(queue);
+    }
 
     // Send message
     this.messagingService.sendMessage(

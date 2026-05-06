@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { GameService } from '../game/game.service';
 import { IGameUser, IGameInstance, IQueueInstance, IGameCard } from '@thefirstspine/types-matches';
-import { ICard, IGameType } from '@thefirstspine/types-game';
-import { GameAssetsService } from '../game-assets/game-assets.service';
+import { ICard } from '@thefirstspine/types-game';
 import { MessagingService } from '@thefirstspine/messaging-nest';
 import { IQueueUser } from '@thefirstspine/types-matches/lib/queue-user.interface';
-import { queue } from 'rxjs';
 
 /**
  * Service to manage the game queue
@@ -24,6 +22,11 @@ export class QueueService {
   private queueInstances: IQueueInstance[] = [];
 
   /**
+   * Fast lookup of users present in any queue (to avoid O(n*m) scans)
+   */
+  private usersInQueues: Set<number> = new Set();
+
+  /**
    * Construtor. Initialize the queue property.
    */
   constructor(
@@ -38,6 +41,7 @@ export class QueueService {
         createdAt: Date.now(),
         cards: [],
         coords: [{x: 3, y: 0}, {x: 3, y: 6}],
+        instantMatchmaking: false,
       },
     );
   }
@@ -52,6 +56,7 @@ export class QueueService {
     expirationTimeModifier: number,
     cards: IGameCard[],
     coords: {x: number, y: number}[],
+    instantMatchmaking: boolean,
   ): Promise<IQueueInstance> {
     const instance: IQueueInstance = {
       key,
@@ -61,13 +66,14 @@ export class QueueService {
       expiresAt: Date.now() + (60 * 30 * 1000),
       cards,
       coords,
+      instantMatchmaking,
     };
 
     this.queueInstances.push(instance);
 
     this.messagingService.sendMessage(
       '*',
-      'TheFirstSpine:queue:expired',
+      'TheFirstSpine:queue:created',
       instance,
     );
 
@@ -120,6 +126,13 @@ export class QueueService {
       score,
       queueExpiresAt: Date.now() + (QueueService.QUEUE__EXPIRATION_TIME * 1000),
     });
+
+    // Maintain fast membership set
+    this.usersInQueues.add(user);
+
+    if (queue.instantMatchmaking && queue.queueUsers.length >= 2) {
+      await this.processMatchmakingFor(queue);
+    }
 
     // Send message
     this.messagingService.sendMessage(
@@ -184,6 +197,13 @@ export class QueueService {
 
     // Remove the user from the queue
     queue.queueUsers = queue.queueUsers.filter(u => u.user !== user);
+
+    // Recalculate membership for this user: remove from set if not present anywhere
+    const stillInAny = this.queueInstances.some(q => q.queueUsers.find(u => u.user === user));
+    if (!stillInAny) {
+      this.usersInQueues.delete(user);
+    }
+
     return queue;
   }
 
@@ -262,6 +282,11 @@ export class QueueService {
       }
       return true;
     });
+
+    // Rebuild membership set for fast lookup (keeps consistency when multiple expirations happen)
+    const users = new Set<number>();
+    this.queueInstances.forEach((q) => q.queueUsers.forEach((u) => users.add(u.user)));
+    this.usersInQueues = users;
   }
 
   /**
@@ -287,9 +312,7 @@ export class QueueService {
    * @param user
    */
   isUserInAllQueues(user: number): boolean {
-    return this.queueInstances.reduce((acc: boolean, queueInstance: IQueueInstance) => {
-      return acc || this.isUserInQueue(queueInstance.key, user);
-    }, false);
+    return this.usersInQueues.has(user);
   }
 
 }

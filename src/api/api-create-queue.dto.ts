@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsIn, IsNumber, Min, Max, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsIn, IsNumber, Min, Max, IsArray, IsBoolean } from 'class-validator';
 import { IGameCard } from '@thefirstspine/types-matches';
 
 export class ApiCreateQueueDto {
@@ -19,4 +19,8 @@ export class ApiCreateQueueDto {
   @IsArray()
   @IsOptional()
   coords?: {x: number, y: number}[];
+
+  @IsBoolean()
+  @IsOptional()
+  instantMatchmaking?: boolean = false;
 }

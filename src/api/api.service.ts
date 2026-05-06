@@ -50,6 +50,7 @@ export class ApiService {
       request.params.expirationTimeModifier ? request.params.expirationTimeModifier : 1,
       request.params.cards ? request.params.cards : [],
       request.params.coords ? request.params.coords : [{x: 3, y: 0}, {x: 3, y: 6}],
+      request.params.instantMatchmaking ? request.params.instantMatchmaking : false,
     );
 
     // Return response
@@ -67,7 +68,7 @@ export class ApiService {
     await this.validateAgainst(request.params, ApiGetQueueDto);
 
     // Create the the instance
-    const queue: IQueueInstance = this.queueService.getQueueInstance(request.params.key);
+    const queue: IQueueInstance | undefined = this.queueService.getQueueInstance(request.params.key);
     if (!queue) {
       throw new ApiError('Unknown queue', ApiError.CODE_INVALID_PARAMS);
     }
@@ -181,8 +182,8 @@ export class ApiService {
       cardsInHand: {user: number, value: number}[],
       cardsInDeck: {user: number, value: number}[],
     } = {
-      cardsInHand: Object.keys(cardsInHand).map((k) => { return {user: parseInt(k, 10), value: cardsInHand[k]} }),
-      cardsInDeck: Object.keys(cardsInDeck).map((k) => { return {user: parseInt(k, 10), value: cardsInDeck[k]} }),
+      cardsInHand: Object.keys(cardsInHand).map((k: string) => { return {user: parseInt(k, 10), value: cardsInHand[parseInt(k, 10)] as number} }),
+      cardsInDeck: Object.keys(cardsInDeck).map((k: string) => { return {user: parseInt(k, 10), value: cardsInDeck[parseInt(k, 10)] as number} }),
     };
 
     return {

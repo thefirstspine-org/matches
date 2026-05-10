@@ -145,7 +145,7 @@ export class CardDestroyedGameHook implements IGameHook {
         return c.location === 'board' &&
           c.coords.x === params.gameCard.coords.x &&
           c.coords.y === params.gameCard.coords.y &&
-          (['creature', 'artifact'].includes(c.card.type) || ['burden-earth', 'ditch'].includes(c.card.id));
+          (['ditch', 'water', 'lava'].includes(c.card.id));
       })) {
         const water: ICard = await this.restService.card('water');
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
@@ -164,17 +164,17 @@ export class CardDestroyedGameHook implements IGameHook {
     }
 
     if (params.gameCard?.currentStats?.effects?.includes('pocket-volcano')) {
-      // Test for possibility to put a ditch card
+      // Test for possibility to put a lava card
       if (!gameInstance.cards.find((c: IGameCard) => {
         return c.location === 'board' &&
           c.coords.x === params.gameCard.coords.x &&
           c.coords.y === params.gameCard.coords.y &&
-          (['creature', 'artifact'].includes(c.card.type) || ['burden-earth', 'ditch'].includes(c.card.id));
+          (['ditch', 'water', 'lava'].includes(c.card.id));
       })) {
-        const ditch: ICard = await this.restService.card('lava');
+        const lava: ICard = await this.restService.card('lava');
         const randomId: number = randBetween(0, Number.MAX_SAFE_INTEGER);
-        const ditchGameCard: IGameCard = {
-          card: ditch,
+        const lavaGameCard: IGameCard = {
+          card: lava,
           id: `${gameInstance.id}_${randomId}`,
           location: 'board',
           user: 0,
@@ -183,7 +183,7 @@ export class CardDestroyedGameHook implements IGameHook {
             y: params.gameCard.coords.y,
           },
         };
-        gameInstance.cards.push(ditchGameCard);
+        gameInstance.cards.push(lavaGameCard);
       }
     }
 

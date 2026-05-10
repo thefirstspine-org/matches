@@ -143,7 +143,7 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
     gameInstance.cards.forEach((c: IGameCard) => {
       // Damages the cards of the next player on lava squares
       const square: IGameCard|undefined = squares.find((s: IGameCard) => c.coords && s.coords.x === c.coords.x && s.coords.y === c.coords.y);
-      if (square && square.card.id === 'lava' && c.user === nextUser && c.card.type !== 'square') {
+      if (square && square.card.id === 'lava' && c.user === nextUser && c.card.type !== 'square' && c.location == 'board') {
         c.currentStats.life --;
         promisesEffects.push(
           this.gameHookService

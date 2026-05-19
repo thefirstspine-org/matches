@@ -13,7 +13,7 @@ export function rotateCard(card: IGameCard, gameInstance: IGameInstance) {
   const copy: IGameCard = JSON.parse(JSON.stringify(card));
 
   // 180 degrees rotation
-  if (currentIndex === 0) {
+  if (currentIndex === 1) {
     copy.currentStats.bottom = JSON.parse(JSON.stringify(card.currentStats.top));
     copy.currentStats.top = JSON.parse(JSON.stringify(card.currentStats.bottom));
     copy.currentStats.left = JSON.parse(JSON.stringify(card.currentStats.right));

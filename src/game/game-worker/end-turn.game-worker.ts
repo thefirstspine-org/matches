@@ -173,6 +173,15 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
 
     await Promise.all(promisesEffects);
 
+    // Reset spells counts on player
+    const playerCard = gameInstance.cards.find((c: IGameCard) => c.location === 'board' && c.card.type === 'player' && c.user === nextUser);
+    if (playerCard) {
+      if (playerCard.metadata) {
+        playerCard.metadata = {};
+      }
+      playerCard.metadata.remainedSpells = 0;
+    }
+
     // Generate the action throw-card for the next user (mulligan for the first turn)
     let action: IGameAction<any>;
     if (gameInstance.actions.previous.filter((a: IGameAction<any>) => a.type === 'end-turn' && a.user === nextUser).length === 0) {

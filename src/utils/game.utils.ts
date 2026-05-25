@@ -7,7 +7,7 @@ import { IGameCard, IGameInstance } from '@thefirstspine/types-matches';
  */
 export function rotateCard(card: IGameCard, gameInstance: IGameInstance) {
   // Get the current user index
-  const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == card.user);
+  const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user === card.user);
 
   // Copy card to not fuck everything
   const copy: IGameCard = JSON.parse(JSON.stringify(card));
@@ -22,10 +22,9 @@ export function rotateCard(card: IGameCard, gameInstance: IGameInstance) {
 
   return copy;
 }
-
 export function getSubjectiveSides(userId: number, gameInstance: IGameInstance) {
   // Get the current user index
-  const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == userId);
+  const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user === userId);
 
   // 180 degrees rotation
   if (currentIndex === 1) {

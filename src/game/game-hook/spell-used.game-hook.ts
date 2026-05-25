@@ -28,32 +28,26 @@ export class SpellUsedGameHook implements IGameHook, IHasGameWorkerService {
         card.currentStats.top.strength += 2;
       });
 
-    // Get the remained spells & remove one
+    // Get the player's remained spells and decrement (default 1 per turn)
     const playerCard: IGameCard = gameInstance.cards.find((c: IGameCard) => c.user === params.gameCard.user && c.card.type === 'player' );
-    if (playerCard?.metadata?.remainedSpells) {
-      // Remove one remaining spell
-      playerCard.metadata.remainedSpells --;
-    }
+    playerCard.metadata = playerCard.metadata ? playerCard.metadata : {};
+    // Default allowed spells per turn is 1 unless explicitly increased by effects (like Ether)
+    playerCard.metadata.remainedSpells = typeof playerCard.metadata.remainedSpells === 'number' ?
+      playerCard.metadata.remainedSpells - 1 :
+      0;
 
-    // No spell remaining
-    if (!playerCard?.metadata?.remainedSpells) {
-      // Get the spells in the hand & delete the associated actions
-      gameInstance.cards
-        .filter((card: IGameCard) => card.location === 'hand' && card.user === params.gameCard.user && card.card.type === 'spell')
-        .forEach((card: IGameCard) => {
-          const actions: Array<IGameAction<any>> = gameInstance.actions.current.filter((a: IGameAction<any>) => a.type === `spell-${card.card.id}`);
-          actions.forEach((action: IGameAction<any>) => {
-            if (action.type === `spell-${params.gameCard.id}`) {
-              // Skip to delete that spell
-              return;
-            }
-            gameInstance.actions.current = gameInstance.actions.current.filter((a: IGameAction<any>) => a !== action);
-            gameInstance.actions.previous.push({
-              ...action,
-              passedAt: Date.now(),
-            });
-          });
+    // If no remained spells left, remove all pending spell actions for this user
+    if (!playerCard.metadata.remainedSpells) {
+      const toRemove: Array<IGameAction<any>> = gameInstance.actions.current.filter((a: IGameAction<any>) => {
+        return typeof a.type === 'string' && a.type.startsWith('spell-') && a.user === params.gameCard.user;
+      });
+      toRemove.forEach((action: IGameAction<any>) => {
+        gameInstance.actions.current = gameInstance.actions.current.filter((a: IGameAction<any>) => a !== action);
+        gameInstance.actions.previous.push({
+          ...action,
+          passedAt: Date.now(),
         });
+      });
     }
 
     return true;

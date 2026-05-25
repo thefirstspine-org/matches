@@ -74,6 +74,15 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
       return false;
     }
 
+    // Reset spells counts on player
+    const playerCard = gameInstance.cards.find((c: IGameCard) => c.location === 'board' && c.card.type === 'player' && c.user === gameAction.user);
+    if (playerCard) {
+      if (playerCard.metadata) {
+        playerCard.metadata = {};
+      }
+      playerCard.metadata.remainedSpells = 0;
+    }
+
     // Validate response input
     const boardCoordsFrom: string = gameAction.response.boardCoordsFrom;
     const boardCoordsTo: string = gameAction.response.boardCoordsTo;

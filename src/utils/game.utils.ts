@@ -13,7 +13,7 @@ export function rotateCard(card: IGameCard, gameInstance: IGameInstance) {
   const copy: IGameCard = JSON.parse(JSON.stringify(card));
 
   // 180 degrees rotation
-  if (currentIndex === 0) {
+  if (currentIndex === 1) {
     copy.currentStats.bottom = JSON.parse(JSON.stringify(card.currentStats.top));
     copy.currentStats.top = JSON.parse(JSON.stringify(card.currentStats.bottom));
     copy.currentStats.left = JSON.parse(JSON.stringify(card.currentStats.right));
@@ -27,7 +27,7 @@ export function getSubjectiveSides(userId: number, gameInstance: IGameInstance) 
   const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == userId);
 
   // 180 degrees rotation
-  if (currentIndex === 0) {
+  if (currentIndex === 1) {
     return [
       {x: 1, y: 0},
       {x: -1, y: 0},
@@ -37,9 +37,9 @@ export function getSubjectiveSides(userId: number, gameInstance: IGameInstance) 
   }
 
   return [
-      {x: -1, y: 0},
-      {x: 1, y: 0},
-      {x: 0, y: 1},
-      {x: 0, y: -1},
-    ];
+    {x: -1, y: 0},
+    {x: 1, y: 0},
+    {x: 0, y: 1},
+    {x: 0, y: -1},
+  ];
 }

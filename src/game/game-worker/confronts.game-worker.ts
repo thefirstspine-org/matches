@@ -104,17 +104,33 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
 
     // Rotate the cards according to the user
     let direction: cardSide|undefined;
-    if (boardCoordsFromY - 1 === boardCoordsToY) {
-      direction = 'top';
-    }
-    if (boardCoordsFromY + 1 === boardCoordsToY) {
-      direction = 'bottom';
-    }
-    if (boardCoordsFromX - 1 === boardCoordsToX) {
-      direction = 'left';
-    }
-    if (boardCoordsFromX + 1 === boardCoordsToX) {
-      direction = 'right';
+    const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == gameAction.user);
+    if (currentIndex == 0) {
+      if (boardCoordsFromY - 1 === boardCoordsToY) {
+        direction = 'top';
+      }
+      if (boardCoordsFromY + 1 === boardCoordsToY) {
+        direction = 'bottom';
+      }
+      if (boardCoordsFromX - 1 === boardCoordsToX) {
+        direction = 'left';
+      }
+      if (boardCoordsFromX + 1 === boardCoordsToX) {
+        direction = 'right';
+      }
+    } else {
+      if (boardCoordsFromY - 1 === boardCoordsToY) {
+        direction = 'bottom';
+      }
+      if (boardCoordsFromY + 1 === boardCoordsToY) {
+        direction = 'top';
+      }
+      if (boardCoordsFromX - 1 === boardCoordsToX) {
+        direction = 'right';
+      }
+      if (boardCoordsFromX + 1 === boardCoordsToX) {
+        direction = 'left';
+      }
     }
 
     // Damages calculation

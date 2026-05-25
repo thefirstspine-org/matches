@@ -11,7 +11,7 @@ import { GameHookService } from '../game-hook/game-hook.service';
 import { IHasGameHookService, IHasGameWorkerService } from '../injections.interface';
 import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
-import { rotateCard, getSubjectiveSides } from '../../utils/game.utils';
+import { rotateCard } from '../../utils/game.utils';
 
 /**
  * The main confrontation game worker. Normally a confrontation is closing the turn of the player. This worker
@@ -239,13 +239,22 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
       if (attacksOn.length > 0) {
         const coordsFrom: ICardCoords = JSON.parse(JSON.stringify(cardRotated.coords));
         const boardCoordsTo = [];
-        const subjectivesSides = getSubjectiveSides(cardRotated.user, gameInstance);
-        // The subjectivesSides indexes match the order ['right','left','bottom','top'] used elsewhere
-        const sideOrder: cardSide[] = ['right','left','bottom','top'];
         attacksOn.forEach((side: cardSide) => {
-          const sideIndex = sideOrder.indexOf(side as cardSide);
-          const pos = subjectivesSides[sideIndex];
-          const coordsTo: ICardCoords = { x: cardRotated.coords.x + pos.x, y: cardRotated.coords.y + pos.y };
+          const coordsTo: ICardCoords = JSON.parse(JSON.stringify(cardRotated.coords));
+          switch (side) {
+            case 'bottom':
+              coordsTo.y ++;
+              break;
+            case 'left':
+              coordsTo.x --;
+              break;
+            case 'right':
+              coordsTo.x ++;
+              break;
+            case 'top':
+              coordsTo.y --;
+              break;
+          }
 
           if (
             gameInstance.cards.find((card) => {

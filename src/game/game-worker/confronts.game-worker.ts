@@ -250,7 +250,7 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
           const coordsTo: ICardCoords = JSON.parse(JSON.stringify(cardRotated.coords));
           switch (side) {
             case 'bottom':
-              coordsTo.y ++;
+              coordsTo.y --;
               break;
             case 'left':
               coordsTo.x --;
@@ -259,7 +259,7 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
               coordsTo.x ++;
               break;
             case 'top':
-              coordsTo.y --;
+              coordsTo.y ++;
               break;
           }
 

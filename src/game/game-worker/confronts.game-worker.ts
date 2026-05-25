@@ -150,6 +150,13 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
       }
     }
 
+    capacitiesToAddToTarget.forEach((capacity: cardCapacity) => {
+      if (!cardTo.currentStats.capacities) {
+        cardTo.currentStats.capacities = [];
+      }
+      cardTo.currentStats.capacities.push(capacity);
+    });
+
     // Apply damages
     if (lifeLostTo > 0) {
       cardTo.currentStats.life -= lifeLostTo;

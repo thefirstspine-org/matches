@@ -104,17 +104,33 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
 
     // Rotate the cards according to the user
     let direction: cardSide|undefined;
-    if (boardCoordsFromY - 1 === boardCoordsToY) {
-      direction = 'top';
-    }
-    if (boardCoordsFromY + 1 === boardCoordsToY) {
-      direction = 'bottom';
-    }
-    if (boardCoordsFromX - 1 === boardCoordsToX) {
-      direction = 'left';
-    }
-    if (boardCoordsFromX + 1 === boardCoordsToX) {
-      direction = 'right';
+    const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == gameAction.user);
+    if (currentIndex == 0) {
+      if (boardCoordsFromY - 1 === boardCoordsToY) {
+        direction = 'top';
+      }
+      if (boardCoordsFromY + 1 === boardCoordsToY) {
+        direction = 'bottom';
+      }
+      if (boardCoordsFromX - 1 === boardCoordsToX) {
+        direction = 'left';
+      }
+      if (boardCoordsFromX + 1 === boardCoordsToX) {
+        direction = 'right';
+      }
+    } else {
+      if (boardCoordsFromY - 1 === boardCoordsToY) {
+        direction = 'bottom';
+      }
+      if (boardCoordsFromY + 1 === boardCoordsToY) {
+        direction = 'top';
+      }
+      if (boardCoordsFromX - 1 === boardCoordsToX) {
+        direction = 'right';
+      }
+      if (boardCoordsFromX + 1 === boardCoordsToX) {
+        direction = 'left';
+      }
     }
 
     // Damages calculation
@@ -149,6 +165,13 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
         capacitiesToAddToTarget.push('requiem');
       }
     }
+
+    capacitiesToAddToTarget.forEach((capacity: cardCapacity) => {
+      if (!cardTo.currentStats.capacities) {
+        cardTo.currentStats.capacities = [];
+      }
+      cardTo.currentStats.capacities.push(capacity);
+    });
 
     // Apply damages
     if (lifeLostTo > 0) {
@@ -243,7 +266,7 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
           const coordsTo: ICardCoords = JSON.parse(JSON.stringify(cardRotated.coords));
           switch (side) {
             case 'bottom':
-              coordsTo.y ++;
+              coordsTo.y --;
               break;
             case 'left':
               coordsTo.x --;
@@ -252,7 +275,7 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
               coordsTo.x ++;
               break;
             case 'top':
-              coordsTo.y --;
+              coordsTo.y ++;
               break;
           }
 

@@ -11,7 +11,7 @@ import { GameHookService } from '../game-hook/game-hook.service';
 import { IHasGameHookService, IHasGameWorkerService } from '../injections.interface';
 import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
-import { rotateCard } from '../../utils/game.utils';
+import { rotateCard, getSubjectiveSides } from '../../utils/game.utils';
 
 /**
  * The main confrontation game worker. Normally a confrontation is closing the turn of the player. This worker
@@ -99,72 +99,43 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
     });
 
     // Ensure that manipulations will not fuck everything
-    const cardFromRotated: IGameCard = rotateCard(cardFrom, gameInstance);
-    const cardToRotated: IGameCard = rotateCard(cardTo, gameInstance);
+    const cardFromRotatedByActive: IGameCard = rotateCard(cardFrom, gameInstance, gameAction.user);
+    const cardToRotatedByActive: IGameCard = rotateCard(cardTo, gameInstance, gameAction.user);
 
-    // Rotate the cards according to the user
-    let direction: cardSide|undefined;
-    const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == gameAction.user);
-    if (currentIndex == 0) {
-      if (boardCoordsFromY - 1 === boardCoordsToY) {
-        direction = 'top';
-      }
-      if (boardCoordsFromY + 1 === boardCoordsToY) {
-        direction = 'bottom';
-      }
-      if (boardCoordsFromX - 1 === boardCoordsToX) {
-        direction = 'left';
-      }
-      if (boardCoordsFromX + 1 === boardCoordsToX) {
-        direction = 'right';
-      }
-    } else {
-      if (boardCoordsFromY - 1 === boardCoordsToY) {
-        direction = 'bottom';
-      }
-      if (boardCoordsFromY + 1 === boardCoordsToY) {
-        direction = 'top';
-      }
-      if (boardCoordsFromX - 1 === boardCoordsToX) {
-        direction = 'right';
-      }
-      if (boardCoordsFromX + 1 === boardCoordsToX) {
-        direction = 'left';
-      }
-    }
+    // Determine engaged sides based on board delta (consistent with getPossibilities)
+    const dx = boardCoordsToX - boardCoordsFromX;
+    const dy = boardCoordsToY - boardCoordsFromY;
+    let sideFrom: cardSide|undefined;
+    if (dx === 0 && dy === 1) sideFrom = 'top';
+    if (dx === 0 && dy === -1) sideFrom = 'bottom';
+    if (dx === -1 && dy === 0) sideFrom = 'left';
+    if (dx === 1 && dy === 0) sideFrom = 'right';
+
+    const oppositeSide: {[k in cardSide]: cardSide} = {top: 'bottom', bottom: 'top', left: 'right', right: 'left'};
+    const sideTo: cardSide|undefined = sideFrom ? oppositeSide[sideFrom] : undefined;
+
+    // For damage calculations, use owner-relative rotations so strengths/defenses match card faces
+    const cardFromOwnerRot: IGameCard = rotateCard(cardFrom, gameInstance, cardFrom.user);
+    const cardToOwnerRot: IGameCard = rotateCard(cardTo, gameInstance, cardTo.user);
 
     // Damages calculation
     let lifeLostTo = 0;
     let lifeLostFrom = 0;
     const capacitiesToAddToTarget: cardCapacity[] = [];
-    if (direction === 'bottom') {
-      lifeLostTo = cardFromRotated.currentStats.bottom.strength - cardToRotated.currentStats.top.defense;
-      lifeLostFrom = cardToRotated.currentStats.top.strength - cardFromRotated.currentStats.bottom.defense;
-      if (cardFromRotated.currentStats.bottom?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
+    if (sideFrom && sideTo) {
+      // attacker's damage to target
+      lifeLostTo = cardFromOwnerRot.currentStats[sideFrom].strength - cardToOwnerRot.currentStats[sideTo].defense;
+      // defender's counter damage to attacker
+      lifeLostFrom = cardToOwnerRot.currentStats[sideTo].strength - cardFromOwnerRot.currentStats[sideFrom].defense;
+
+      // Handle kiss/requiem capacity on the attacker's engaged side as seen by the owner
+      if (cardFromOwnerRot.currentStats[sideFrom]?.capacity == 'kiss' && cardToOwnerRot.currentStats.capacities?.includes('requiem')) {
         capacitiesToAddToTarget.push('requiem');
       }
     }
-    if (direction === 'top') {
-      lifeLostTo = cardFromRotated.currentStats.top.strength - cardToRotated.currentStats.bottom.defense;
-      lifeLostFrom = cardToRotated.currentStats.bottom.strength - cardFromRotated.currentStats.top.defense;
-      if (cardFromRotated.currentStats.top?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
-        capacitiesToAddToTarget.push('requiem');
-      }
-    }
-    if (direction === 'left') {
-      lifeLostTo = cardFromRotated.currentStats.left.strength - cardToRotated.currentStats.right.defense;
-      lifeLostFrom = cardToRotated.currentStats.right.strength - cardFromRotated.currentStats.left.defense;
-      if (cardFromRotated.currentStats.left?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
-        capacitiesToAddToTarget.push('requiem');
-      }
-    }
-    if (direction === 'right') {
-      lifeLostTo = cardFromRotated.currentStats.right.strength - cardToRotated.currentStats.left.defense;
-      lifeLostFrom = cardToRotated.currentStats.left.strength - cardFromRotated.currentStats.right.defense;
-      if (cardFromRotated.currentStats.right?.capacity == 'kiss' && cardToRotated.currentStats.capacities?.includes('requiem')) {
-        capacitiesToAddToTarget.push('requiem');
-      }
-    }
+
+    // Keep direction for logs & messages (derive from sideFrom to preserve existing uses)
+    let direction: cardSide|undefined = sideFrom;
 
     capacitiesToAddToTarget.forEach((capacity: cardCapacity) => {
       if (!cardTo.currentStats.capacities) {
@@ -172,6 +143,50 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
       }
       cardTo.currentStats.capacities.push(capacity);
     });
+
+    // Debug: log computed sides/values before applying damages
+    try {
+      this.logsService.info('Confronts: pre-apply', {
+        boardCoordsFrom,
+        boardCoordsTo,
+        direction,
+        gameUsers: gameInstance.gameUsers.map((u) => u.user),
+        cardFrom: {
+          id: cardFrom.id,
+          user: cardFrom.user,
+          rotatedByActiveUser: {
+            top: cardFromRotatedByActive.currentStats.top,
+            right: cardFromRotatedByActive.currentStats.right,
+            bottom: cardFromRotatedByActive.currentStats.bottom,
+            left: cardFromRotatedByActive.currentStats.left,
+          },
+          rotatedByOwner: (() => {
+            try { const r = rotateCard(cardFrom, gameInstance, cardFrom.user); return {top: r.currentStats.top, right: r.currentStats.right, bottom: r.currentStats.bottom, left: r.currentStats.left}; } catch (e) { return null; }
+          })(),
+          life: cardFrom.currentStats.life,
+        },
+        cardTo: {
+          id: cardTo.id,
+          user: cardTo.user,
+          rotatedByActiveUser: {
+            top: cardToRotatedByActive.currentStats.top,
+            right: cardToRotatedByActive.currentStats.right,
+            bottom: cardToRotatedByActive.currentStats.bottom,
+            left: cardToRotatedByActive.currentStats.left,
+          },
+          rotatedByOwner: (() => {
+            try { const r = rotateCard(cardTo, gameInstance, cardTo.user); return {top: r.currentStats.top, right: r.currentStats.right, bottom: r.currentStats.bottom, left: r.currentStats.left}; } catch (e) { return null; }
+          })(),
+          life: cardTo.currentStats.life,
+        },
+        sidesByActiveUser: (() => { try { const s = getSubjectiveSides(gameAction.user, gameInstance); return s; } catch (e) { return null; } })(),
+        lifeLostTo,
+        lifeLostFrom,
+        capacitiesToAddToTarget,
+      });
+    } catch (e) {
+      // ignore logging errors
+    }
 
     // Apply damages
     if (lifeLostTo > 0) {
@@ -243,7 +258,7 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
 
       const attacksOn: cardSide[] = [];
       const allSides: cardSide[] = ['top', 'right', 'bottom', 'left'];
-      const cardRotated: IGameCard = rotateCard(card, gameInstance);
+      const cardRotated: IGameCard = rotateCard(card, gameInstance, user);
 
       if (cardRotated.user === user) {
         if (cardRotated.card.type === 'creature') {

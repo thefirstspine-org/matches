@@ -5,14 +5,16 @@ import { IGameCard, IGameInstance } from '@thefirstspine/types-matches';
  * @param card
  * @param gameInstance
  */
-export function rotateCard(card: IGameCard, gameInstance: IGameInstance) {
+export function rotateCard(card: IGameCard, gameInstance: IGameInstance, viewerUser?: number) {
+  // Determine which user's perspective to use. Default: the card owner (backwards compatible).
+  const perspectiveUser = viewerUser !== undefined ? viewerUser : card.user;
   // Get the current user index
-  const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == card.user);
+  const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == perspectiveUser);
 
   // Copy card to not fuck everything
   const copy: IGameCard = JSON.parse(JSON.stringify(card));
 
-  // 180 degrees rotation
+  // 180 degrees rotation when perspective is the second player
   if (currentIndex === 1) {
     copy.currentStats.bottom = JSON.parse(JSON.stringify(card.currentStats.top));
     copy.currentStats.top = JSON.parse(JSON.stringify(card.currentStats.bottom));
@@ -27,7 +29,7 @@ export function getSubjectiveSides(userId: number, gameInstance: IGameInstance) 
   const currentIndex = gameInstance.gameUsers.findIndex((w) => w.user == userId);
 
   // 180 degrees rotation
-  if (currentIndex === 1) {
+  if (currentIndex === 0) {
     return [
       {x: 1, y: 0},
       {x: -1, y: 0},

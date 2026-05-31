@@ -176,7 +176,7 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
     // Reset spells counts on player
     const playerCard = gameInstance.cards.find((c: IGameCard) => c.location === 'board' && c.card.type === 'player' && c.user === nextUser);
     if (playerCard) {
-      if (playerCard.metadata) {
+      if (!playerCard.metadata) {
         playerCard.metadata = {};
       }
       playerCard.metadata.remainedSpells = 0;

@@ -56,6 +56,7 @@ import { SpellAutumnGameWorker } from './spell-autumn.game-worker';
 import { SpellHypergrowthGameWorker } from './spell-hypergrowth.game-worker';
 import { SpellStoningGameWorker } from './spell-stoning.game-worker';
 import { SpellOstinatoGameWorker } from './spell-ostinato.game-worker';
+import { SpellFurnaceGameWorker } from './spell-furnace.game-worker';
 
 /**
  * Main service that manages game workers. Each game worker is responsible of a game action type. This service
@@ -150,6 +151,7 @@ export class GameWorkerService extends BaseGameService<IGameWorker> {
     this.createInjectable(SpellHypergrowthGameWorker, injectedProps);
     this.createInjectable(SpellStoningGameWorker, injectedProps);
     this.createInjectable(SpellOstinatoGameWorker, injectedProps);
+    this.createInjectable(SpellFurnaceGameWorker, injectedProps);
   }
 
   /**

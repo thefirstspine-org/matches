@@ -11,7 +11,29 @@ import { GameHookService } from '../game-hook/game-hook.service';
 import { IHasGameHookService, IHasGameWorkerService } from '../injections.interface';
 import { ArenaRoomsService } from '../../rooms/arena-rooms.service';
 import { LogsService } from '@thefirstspine/logs-nest';
-import { rotateCard, getSubjectiveSides } from '../../utils/game.utils';
+import { rotateCard, getSubjectiveSides, getSideCoords } from '../../utils/game.utils';
+
+/**
+ * Maps a board-based side to an owner-relative side for a given card.
+ * When a card owner is player 1, sides are rotated 180 degrees: top↔bottom, left↔right.
+ * @param side Board-based side (absolute reference frame)
+ * @param card The card being queried
+ * @param gameInstance Game instance containing player info
+ * @returns The side as seen by the card owner
+ */
+function mapBoardSideToOwnerSide(side: cardSide, card: IGameCard, gameInstance: IGameInstance): cardSide {
+  const ownerIndex = gameInstance.gameUsers.findIndex((w) => w.user == card.user);
+  if (ownerIndex === 1) {
+    const sideMap: {[k in cardSide]: cardSide} = {
+      top: 'bottom',
+      bottom: 'top',
+      left: 'right',
+      right: 'left',
+    };
+    return sideMap[side];
+  }
+  return side;
+}
 
 /**
  * The main confrontation game worker. Normally a confrontation is closing the turn of the player. This worker
@@ -129,7 +151,11 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
       lifeLostFrom = cardToOwnerRot.currentStats[sideTo].strength - cardFromOwnerRot.currentStats[sideFrom].defense;
 
       // Handle kiss/requiem capacity on the attacker's engaged side as seen by the owner
-      if (cardFromOwnerRot.currentStats[sideFrom]?.capacity == 'kiss' && !cardToOwnerRot.currentStats.capacities?.includes('requiem')) {
+      // Map board-based sides to owner-relative sides
+      const sideFromOwnerRelative = mapBoardSideToOwnerSide(sideFrom, cardFrom, gameInstance);
+      const sideToOwnerRelative = mapBoardSideToOwnerSide(sideTo, cardTo, gameInstance);
+      
+      if (cardFromOwnerRot.currentStats[sideFromOwnerRelative]?.capacity == 'kiss' && !cardToOwnerRot.currentStats.capacities?.includes('requiem')) {
         capacitiesToAddToTarget.push('requiem');
       }
     }

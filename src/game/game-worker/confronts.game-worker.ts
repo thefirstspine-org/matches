@@ -129,7 +129,7 @@ export class ConfrontsGameWorker implements IGameWorker, IHasGameHookService, IH
       lifeLostFrom = cardToOwnerRot.currentStats[sideTo].strength - cardFromOwnerRot.currentStats[sideFrom].defense;
 
       // Handle kiss/requiem capacity on the attacker's engaged side as seen by the owner
-      if (cardFromOwnerRot.currentStats[sideFrom]?.capacity == 'kiss' && cardToOwnerRot.currentStats.capacities?.includes('requiem')) {
+      if (cardFromOwnerRot.currentStats[sideFrom]?.capacity == 'kiss' && !cardToOwnerRot.currentStats.capacities?.includes('requiem')) {
         capacitiesToAddToTarget.push('requiem');
       }
     }

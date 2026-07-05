@@ -134,6 +134,11 @@ export class EndTurnGameWorker implements IGameWorker, IHasGameHookService, IHas
             )
           );
         }
+      } else if (c.user === nextUser && !c.currentStats?.capacities?.includes('requiem') && c.location === 'board') {
+        // Clear requiem metadata if the card no longer has the capacity
+        if (c.metadata?.requiemTurns !== undefined) {
+          c.metadata.requiemTurns = 5;
+        }
       }
     });
 
